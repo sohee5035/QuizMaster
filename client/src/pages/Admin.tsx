@@ -192,20 +192,37 @@ export default function Admin() {
 
   const csvUploadMutation = useMutation({
     mutationFn: async (file: File) => {
-      const formData = new FormData();
-      formData.append('csv', file);
-      
-      const response = await fetch("/api/admin/questions/csv", {
-        method: "POST",
-        body: formData,
-      });
-      
-      if (!response.ok) {
-        const error = await response.text();
-        throw new Error(error);
+      try {
+        console.log('CSV 업로드 시작:', file.name, `크기: ${file.size}바이트`);
+        
+        const formData = new FormData();
+        formData.append('csv', file);
+        
+        const response = await fetch("/api/admin/questions/csv", {
+          method: "POST",
+          body: formData,
+        });
+        
+        console.log('서버 응답:', response.status, response.statusText);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('서버 오류 응답:', errorText);
+          throw new Error(`서버 오류 (${response.status}): ${errorText}`);
+        }
+        
+        const result = await response.json();
+        console.log('업로드 성공 결과:', result);
+        return result;
+      } catch (networkError) {
+        console.error('네트워크 또는 처리 오류:', networkError);
+        
+        if (networkError instanceof TypeError && networkError.message.includes('fetch')) {
+          throw new Error('서버 연결 실패: 네트워크 문제 또는 서버가 응답하지 않습니다.');
+        }
+        
+        throw networkError;
       }
-      
-      return response.json();
     },
     onSuccess: (data) => {
       let description = data.message || "CSV 파일이 성공적으로 업로드되었습니다.";

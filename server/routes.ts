@@ -362,7 +362,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // 관리자 API - CSV 파일 업로드
   app.post("/api/admin/questions/csv", upload.single("csv"), async (req, res) => {
     try {
+      console.log('CSV 업로드 요청 받음. 파일:', req.file ? `크기 ${req.file.size}바이트` : '없음');
+      
       if (!req.file) {
+        console.error('CSV 파일이 업로드되지 않음');
         return res.status(400).json({ message: "CSV 파일이 필요합니다." });
       }
 
@@ -469,18 +472,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
               errors: failedResults.length > 0 ? failedResults.slice(0, 5) : [] // 처음 5개 에러만 표시
             });
           } catch (error) {
-            console.error("Error processing CSV data:", error);
-            res.status(500).json({ message: "CSV 데이터 처리 중 오류가 발생했습니다." });
+            console.error("CSV 데이터 처리 중 심각한 오류:", error);
+            res.status(500).json({ 
+              message: "CSV 데이터 처리 중 오류가 발생했습니다.",
+              error: error instanceof Error ? error.message : String(error)
+            });
           }
         })
         .on("error", (error) => {
-          console.error("Error parsing CSV:", error);
-          res.status(500).json({ message: "CSV 파일 파싱 중 오류가 발생했습니다." });
+          console.error("CSV 파싱 오류:", error);
+          res.status(500).json({ 
+            message: "CSV 파일 파싱 중 오류가 발생했습니다.",
+            error: error instanceof Error ? error.message : String(error)
+          });
         });
 
     } catch (error) {
-      console.error("Error uploading CSV:", error);
-      res.status(500).json({ message: "CSV 업로드에 실패했습니다." });
+      console.error("CSV 업로드 전체 처리 오류:", error);
+      res.status(500).json({ 
+        message: "CSV 업로드에 실패했습니다.",
+        error: error instanceof Error ? error.message : String(error)
+      });
     }
   });
 
