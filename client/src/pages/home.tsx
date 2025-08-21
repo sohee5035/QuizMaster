@@ -25,7 +25,7 @@ export default function Home({ onStart }: HomeProps) {
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-xl transition-colors duration-200 shadow-sm"
             data-testid="button-start-session"
           >
-            게스트 – 문제풀이 시작
+            전체 문제풀이 시작
           </Button>
         </CardContent>
       </Card>
