@@ -19,7 +19,7 @@ export default function Results({ results, onRestart, onHome }: ResultsProps) {
           </div>
 
           {/* Results Summary */}
-          <div className="bg-blue-50 rounded-xl border border-blue-200 p-6 mb-6">
+          <div className="bg-yellow-50 rounded-xl border border-yellow-200 p-6 mb-6">
             <div className="grid grid-cols-2 gap-4 text-center">
               <div>
                 <div className="text-2xl font-bold text-green-600" data-testid="text-correct-count">
@@ -69,7 +69,7 @@ export default function Results({ results, onRestart, onHome }: ResultsProps) {
           <div className="space-y-3">
             <Button 
               onClick={onRestart}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200"
+              className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200"
               data-testid="button-restart"
             >
               다시 시작하기

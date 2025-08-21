@@ -33,7 +33,7 @@ export default function Question({ sessionData, onAnswer, onNext, answerResult, 
 
   const getChoiceButtonClass = (choiceId: string, isCorrect: boolean) => {
     if (!answerResult) {
-      return "w-full text-left p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200";
+      return "w-full text-left p-4 rounded-lg border border-gray-200 hover:border-yellow-300 hover:bg-yellow-50 transition-all duration-200";
     }
 
     if (selectedAnswer === choiceId) {
@@ -47,7 +47,7 @@ export default function Question({ sessionData, onAnswer, onNext, answerResult, 
 
   const getOXButtonClass = (value: boolean) => {
     if (!answerResult) {
-      return "w-full text-left p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200";
+      return "w-full text-left p-4 rounded-lg border border-gray-200 hover:border-yellow-300 hover:bg-yellow-50 transition-all duration-200";
     }
 
     if (selectedAnswer === value) {
@@ -205,7 +205,7 @@ export default function Question({ sessionData, onAnswer, onNext, answerResult, 
           <Button
             onClick={onNext}
             disabled={isLoading}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-xl transition-colors duration-200 shadow-sm"
+            className="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-8 rounded-xl transition-colors duration-200 shadow-sm"
             data-testid="button-next-question"
           >
             {isLoading ? "로딩 중..." : "다음 문제"}

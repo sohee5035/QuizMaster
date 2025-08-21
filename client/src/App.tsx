@@ -132,7 +132,7 @@ function AppContent() {
             <div className="space-x-4">
               <button
                 onClick={handleHome}
-                className="text-blue-600 hover:text-blue-800"
+                className="text-yellow-600 hover:text-yellow-800"
                 data-testid="nav-home"
               >
                 홈
