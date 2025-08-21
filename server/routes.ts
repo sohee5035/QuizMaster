@@ -24,6 +24,17 @@ const upload = multer({ storage: multer.memoryStorage() });
 const sessionQuestionOrders: Map<string, string[]> = new Map();
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Questions count endpoint
+  app.get("/api/questions/count", async (req, res) => {
+    try {
+      const questions = await storage.getQuestions();
+      res.json({ count: questions.length });
+    } catch (error) {
+      console.error('Questions count error:', error);
+      res.status(500).json({ message: "문제 수 조회 중 오류가 발생했습니다." });
+    }
+  });
+
   // Admin stats endpoint (before page view middleware)
   app.get("/api/admin/stats", async (req, res) => {
     try {
