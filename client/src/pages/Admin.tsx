@@ -10,9 +10,81 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
+// 관리자 로그인 컴포넌트
+function AdminLogin({ onLogin }: { onLogin: () => void }) {
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    // 비밀번호 확인 (1122)
+    setTimeout(() => {
+      if (password === "1122") {
+        toast({
+          title: "로그인 성공",
+          description: "관리자 페이지에 접근할 수 있습니다.",
+        });
+        onLogin();
+      } else {
+        toast({
+          title: "로그인 실패",
+          description: "올바른 비밀번호를 입력해주세요.",
+          variant: "destructive",
+        });
+        setPassword("");
+      }
+      setIsLoading(false);
+    }, 500);
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl">🔐 관리자 로그인</CardTitle>
+          <CardDescription>관리자 페이지에 접근하려면 비밀번호를 입력하세요</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="admin-password">비밀번호</Label>
+              <Input
+                id="admin-password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="비밀번호를 입력하세요"
+                required
+                data-testid="input-admin-password"
+              />
+            </div>
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={isLoading}
+              data-testid="button-admin-login"
+            >
+              {isLoading ? "로그인 중..." : "로그인"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export default function Admin() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // 인증되지 않은 경우 로그인 화면 표시
+  if (!isAuthenticated) {
+    return <AdminLogin onLogin={() => setIsAuthenticated(true)} />;
+  }
 
   // OX 문제 상태
   const [oxForm, setOxForm] = useState({
@@ -481,6 +553,17 @@ export default function Admin() {
             </Tabs>
           </CardContent>
         </Card>
+        
+        {/* 로그아웃 버튼 */}
+        <div className="mt-6 text-center">
+          <Button
+            variant="outline"
+            onClick={() => setIsAuthenticated(false)}
+            data-testid="button-admin-logout"
+          >
+            🔓 로그아웃
+          </Button>
+        </div>
       </div>
     </div>
   );
