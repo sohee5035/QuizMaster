@@ -23,9 +23,15 @@ export default function Home({ onStart }: HomeProps) {
           </div>
 
           <div className="bg-yellow-50 rounded-xl border border-yellow-200 p-6 mb-8">
-            <div className="text-lg font-semibold text-gray-900 mb-1">예선 25.08.27 (수) 17:00</div>
-            <div className="text-lg font-semibold text-gray-900 mb-3">본선 25.09.12 (금) 16:00</div>
-            <div className="text-gray-700">외환 마스터가 되는 그 날까지!</div>
+            <div className="text-center mb-4">
+              <div className="text-lg font-semibold text-gray-900 mb-3">✨ 외환 마스터가 되는 그 날까지! ✨</div>
+              <div className="text-lg font-semibold text-gray-900 mb-1">📅 예선 25.08.27 (수) 17:00</div>
+              <div className="text-lg font-semibold text-gray-900 mb-4">📅 본선 25.09.12 (금) 16:00</div>
+            </div>
+            <div className="border-t border-yellow-300 pt-4">
+              <div className="text-sm text-gray-700 mb-2">📘 본 페이지는 외환사업부 410의 출제 예상 문제를 보기와 순서가 랜덤하게 나오도록 설정한 것입니다.</div>
+              <div className="text-sm text-gray-700">⚖️ 하단 난이도별 문제는 제작자인 제가 느끼는 난이도이니, 참고해주세요~!</div>
+            </div>
           </div>
 
           <div className="space-y-3">
