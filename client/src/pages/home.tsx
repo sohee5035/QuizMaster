@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import mascotImage from "@assets/image_1755743912628.png";
 
 interface HomeProps {
   onStart: (questionCount?: number) => void;
@@ -11,6 +12,13 @@ export default function Home({ onStart }: HomeProps) {
       <Card className="mt-8 shadow-sm">
         <CardContent className="p-8">
           <div className="text-center mb-8">
+            <div className="mb-6">
+              <img 
+                src={mascotImage} 
+                alt="KB 외환 마스터 캐릭터" 
+                className="w-32 h-32 mx-auto rounded-full bg-orange-50 p-2"
+              />
+            </div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">🏆 KB 외환 마스터 👑</h1>
           </div>
 
