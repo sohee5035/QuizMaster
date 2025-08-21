@@ -1,0 +1,161 @@
+A. 변경 요약
+
+난이도 표시 제거
+
+어디에서도 난이도 뱃지/칩/텍스트를 렌더링하지 않음.
+
+API 응답에 difficulty가 있어도 프론트에서 무시.
+
+해설은 “원문 그대로” 노출
+
+줄바꿈/괄호/경로 등을 가공 없이 그대로 보여줌.
+
+마크다운 변환/요약/접기 사용 금지.
+
+글자 그대로 복사 가능하도록 white-space: pre-wrap 스타일 적용.
+
+메인 화면 추가 (게스트 시작형)
+
+상단 타이틀: KB 외환 마스터
+
+본문 카피(그대로):
+
+예선 25.08.27 (수) 17:00
+
+본선 25.09.12 (금) 16:00
+
+외환 마스터가 되는 그 날까지!
+
+버튼: 게스트 – 문제풀이 시작 (→ 학습 모드 첫 문제로 진입)
+
+B. 화면 스펙
+B-1) 메인(Home)
+
+타이틀: KB 외환 마스터
+
+일정/카피 3줄 고정 문구(위 문구 그대로)
+
+CTA: 게스트 – 문제풀이 시작
+
+클릭 시 /api/session/start(mode='study') 호출 → 문제 화면으로 이동
+
+B-2) 문제 화면(Learning)
+
+진행상황 바(예: 1 / 2)만 표시
+
+문제 지문(stem)
+
+보기:
+
+MCQ: 4개(순서 랜덤)
+
+OX: O / X
+
+선택 즉시 판정 → 상단에 “정답입니다 / 오답입니다” 알림
+
+해설 박스: 네가 준 원문 그대로 렌더
+
+다음 진행은 반드시 [다음 문제] 버튼으로
+
+표시 금지: 난이도 칩/난이도 텍스트, 불필요 라벨(‘객관식’ 배지 등)
+
+C. 시드 데이터(2문항만, 해설 원문 그대로)
+[
+  {
+    "id": "q1",
+    "type": "MCQ",
+    "stem": "다음 중 외국통화매매 거래시 영업점장 전결 최대 환율 우대율이 80%가 아닌 통화는?",
+    "choices": [
+      { "id": "q1c1", "content": "USD", "is_correct": false },
+      { "id": "q1c2", "content": "JPY", "is_correct": false },
+      { "id": "q1c3", "content": "CNY", "is_correct": true },
+      { "id": "q1c4", "content": "EUR", "is_correct": false }
+    ],
+    "explanation": "CNY통화는 영업점장 전결로 최대 50%까지 환율우대율이 적용됩니다.",
+    "tags": ["환율우대"],
+    "difficulty": 2,
+    "source": "외환 규정집"
+  },
+  {
+    "id": "q2",
+    "type": "OX",
+    "stem": "외국통화 매입시 손상화폐의 경우 손상정도에 따라 일부 금액만 지불하고 매입이 가능하다.",
+    "answer": false,
+    "explanation": "손상화폐나 위변조통화는 매매가 불가능합니다. (외환 > 외환공통 > 제1장 > 제1절 > 제1관 외국통화매입신청서 접수",
+    "tags": ["외환공통"],
+    "difficulty": 1,
+    "source": "외환 규정집"
+  }
+]
+
+
+주의: 두 번째 문항의 해설은 네가 준 문자열을 그대로 썼어(닫는 괄호 없음 포함).
+원하는 경우 이후에만 괄호를 닫도록 수정 지시해줘.
+
+D. 프론트 적용 포인트(React 가이드)
+
+난이도 숨김
+
+난이도 렌더링 코드/칩/배지 삭제 또는 조건부 렌더 false.
+
+해설 원문 보존 스타일
+
+<div className="mt-3 rounded-lg border p-4 bg-gray-50">
+  <div className="font-semibold mb-2">해설</div>
+  <p style={{ whiteSpace: 'pre-wrap' }}>{explanation}</p>
+</div>
+
+
+메인 화면 컴포넌트(예시)
+
+export default function Home({ onStart }) {
+  return (
+    <div className="mx-auto max-w-xl p-6">
+      <h1 className="text-2xl font-bold mb-4">KB 외환 마스터</h1>
+
+      <div className="rounded-xl border p-5 mb-6">
+        <div className="text-lg font-semibold">예선 25.08.27 (수) 17:00</div>
+        <div className="text-lg font-semibold">본선 25.09.12 (금) 16:00</div>
+        <div className="mt-2">외환 마스터가 되는 그 날까지!</div>
+      </div>
+
+      <button
+        className="w-full rounded-xl px-4 py-3 font-semibold border hover:shadow"
+        onClick={onStart}
+      >
+        게스트 – 문제풀이 시작
+      </button>
+    </div>
+  );
+}
+
+
+문제 해설 항상 노출 흐름
+
+답 선택 → /api/session/:id/answer → {isCorrect, explanation} 수신
+
+결과 배너 표시 + 설명 박스 그대로 렌더
+
+[다음 문제] 버튼이 활성화될 때까지 다른 보기 클릭 비활성
+
+E. 서버(Express) 체크리스트
+
+/api/session/start : 세션 생성 후 첫 문제 반환
+
+/api/session/:id/next : 다음 문제 + 섞인 보기 순서 반환
+
+/api/session/:id/answer : 채점 → explanation 원문 그대로 전달
+
+응답 DTO에 difficulty 포함되어도 프론트는 미사용
+
+F. 메인 카피(그대로 쓰기용)
+
+KB 외환 마스터
+
+예선 25.08.27 (수) 17:00
+
+본선 25.09.12 (금) 16:00
+
+외환 마스터가 되는 그 날까지!
+
+버튼: 게스트 – 문제풀이 시작
