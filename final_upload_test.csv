@@ -1,0 +1,3 @@
+question_id,type,stem,explanation,tags,difficulty,source,answer,choice1,choice2,choice3,choice4,correct_answer
+test1,MCQ,테스트 문제 1,테스트 해설 1,테스트,1,테스트,,선택지1,선택지2,선택지3,선택지4,2
+test2,OX,테스트 문제 2,테스트 해설 2,테스트,1,테스트,O,,,,,

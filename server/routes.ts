@@ -371,32 +371,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const results: any[] = [];
       const csvData: any[] = [];
-      let rowCount = 0;
+      
+      // BOM 제거 및 문자열 정리
+      let csvText = req.file.buffer.toString('utf8');
+      
+      // UTF-8 BOM 제거
+      if (csvText.charCodeAt(0) === 0xFEFF) {
+        csvText = csvText.slice(1);
+      }
+      
+      const csvBuffer = Buffer.from(csvText, 'utf8');
 
       // CSV 파일을 스트림으로 처리
       const readable = new Readable();
-      readable.push(req.file.buffer);
+      readable.push(csvBuffer);
       readable.push(null);
 
       readable
-        .pipe(csv())
+        .pipe(csv({ 
+          skipEmptyLines: true,
+          trim: true 
+        }))
         .on("data", (row) => {
           csvData.push(row);
         })
         .on("end", async () => {
           try {
-            console.log(`CSV 데이터 처리 시작. 총 ${csvData.length}개 행`);
-            
-            for (const row of csvData) {
-              // 한국어와 영어 헤더 모두 지원
-              const questionId = row.question_id || row.questionId || row["문제ID"];
+            for (let i = 0; i < csvData.length; i++) {
+              const row = csvData[i];
+              
+              // 첫 번째 키부터 question_id 찾기 (BOM 문제 해결)
+              const allKeys = Object.keys(row);
+              const qIdKey = allKeys.find(key => key.endsWith('question_id')) || allKeys[0];
+              
+              const questionId = row[qIdKey] || row.questionId || row["문제ID"];
               const stem = row.stem || row["문제내용"];
               const explanation = row.explanation || row["해설"];
               const tags = row.tags || row["태그"] || null;
-              const difficulty = row.difficulty || row["난이도"] ? parseInt(row.difficulty || row["난이도"]) : null;
+              const difficulty = (row.difficulty || row["난이도"]) ? parseInt(row.difficulty || row["난이도"]) : null;
               const source = row.source || row["출처"] || null;
-
-              console.log(`처리 중인 문제: ${questionId}`);
 
               if (!questionId || !stem || !explanation) {
                 const missingFields = [];
@@ -413,7 +426,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               }
 
               try {
-                // 한국어와 영어 필드 모두 지원
+                // 영어와 한국어 필드 모두 지원 (영어 우선)
                 const answer = row.answer || row["정답"];
                 const choice1 = row.choice1 || row["선택지1"];
                 const choice2 = row.choice2 || row["선택지2"];
@@ -423,11 +436,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 
                 // OX 문제인지 사지선다인지 판단
                 const hasAnswer = answer && answer.trim() !== "";
-                const hasChoices = choice1 && choice2 && choice3 && choice4;
+                const hasChoices = choice1 && choice1.trim() !== "" && 
+                                  choice2 && choice2.trim() !== "" && 
+                                  choice3 && choice3.trim() !== "" && 
+                                  choice4 && choice4.trim() !== "";
                 const isOX = hasAnswer && (answer.toUpperCase() === "O" || answer.toUpperCase() === "X" || 
                              answer === "true" || answer === "false");
-                
-                console.log(`문제 ${questionId}: hasAnswer=${hasAnswer}, hasChoices=${hasChoices}, isOX=${isOX}`);
                 
                 if (isOX) {
                   // OX 문제 처리
@@ -549,10 +563,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.setHeader('Content-Type', 'text/csv; charset=utf-8');
       res.setHeader('Content-Disposition', 'attachment; filename="kb_exam_questions.csv"');
       
-      // BOM 추가 (한글 깨짐 방지)
-      res.write('\uFEFF');
-      
-      // CSV 헤더
+      // CSV 헤더 (BOM 제거)
       const header = 'question_id,type,stem,explanation,tags,difficulty,source,answer,choice1,choice2,choice3,choice4,correct_answer\n';
       res.write(header);
 
