@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface HomeProps {
-  onStart: () => void;
+  onStart: (questionCount?: number) => void;
 }
 
 export default function Home({ onStart }: HomeProps) {
@@ -20,13 +20,23 @@ export default function Home({ onStart }: HomeProps) {
             <div className="text-gray-700">외환 마스터가 되는 그 날까지!</div>
           </div>
 
-          <Button
-            onClick={onStart}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-xl transition-colors duration-200 shadow-sm"
-            data-testid="button-start-session"
-          >
-            전체 문제풀이 시작
-          </Button>
+          <div className="space-y-3">
+            <Button
+              onClick={() => onStart()}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-xl transition-colors duration-200 shadow-sm"
+              data-testid="button-start-session-all"
+            >
+              전체 문제풀이 시작
+            </Button>
+            
+            <Button
+              onClick={() => onStart(10)}
+              className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-4 px-6 rounded-xl transition-colors duration-200 shadow-sm"
+              data-testid="button-start-session-random"
+            >
+              랜덤 10문제 시작
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>

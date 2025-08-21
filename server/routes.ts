@@ -20,18 +20,30 @@ function shuffle<T>(array: T[]): T[] {
 // Configure multer for file upload
 const upload = multer({ storage: multer.memoryStorage() });
 
+// In-memory store for session question orders (simple implementation)
+const sessionQuestionOrders: Map<string, string[]> = new Map();
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Start a new session and return first question
   app.post("/api/session/start", async (req, res) => {
     try {
-      const { mode = "study" } = req.body;
+      const { mode = "study", questionCount } = req.body;
       
       const session = await storage.createSession({ mode });
-      const questions = await storage.getQuestions();
+      let questions = await storage.getQuestions();
       
       if (questions.length === 0) {
         return res.status(404).json({ message: "No questions available" });
       }
+
+      // If questionCount is specified, randomly select that many questions
+      if (questionCount && questionCount > 0) {
+        const shuffledQuestions = shuffle(questions);
+        questions = shuffledQuestions.slice(0, Math.min(questionCount, questions.length));
+      }
+
+      // Store the question order for this session
+      sessionQuestionOrders.set(session.id, questions.map(q => q.id));
 
       const firstQuestion = questions[0];
       let questionWithChoices: QuestionWithChoices = firstQuestion;
@@ -69,14 +81,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const responses = await storage.getResponsesForSession(sessionId);
-      const questions = await storage.getQuestions();
       const currentQuestionIndex = responses.length;
-
-      if (currentQuestionIndex >= questions.length) {
+      
+      // Get the question order for this session
+      const questionOrder = sessionQuestionOrders.get(sessionId);
+      if (!questionOrder || currentQuestionIndex >= questionOrder.length) {
         return res.status(404).json({ message: "No more questions" });
       }
 
-      const nextQuestion = questions[currentQuestionIndex];
+      const nextQuestionId = questionOrder[currentQuestionIndex];
+      const nextQuestion = await storage.getQuestion(nextQuestionId);
+      
+      if (!nextQuestion) {
+        return res.status(404).json({ message: "Question not found" });
+      }
+
       let questionWithChoices: QuestionWithChoices = nextQuestion;
 
       if (nextQuestion.type === "MCQ") {
@@ -91,7 +110,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         sessionId: session.id,
         question: questionWithChoices,
         currentQuestion: currentQuestionIndex + 1,
-        totalQuestions: questions.length,
+        totalQuestions: questionOrder.length,
       };
 
       res.json(response);
