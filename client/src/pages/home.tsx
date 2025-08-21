@@ -24,7 +24,7 @@ export default function Home({ onStart }: HomeProps) {
 
           <div className="bg-yellow-50 rounded-xl border border-yellow-200 p-6 mb-8">
             <div className="text-center mb-4">
-              <div className="text-lg font-semibold text-gray-900 mb-3">✨ 외환 마스터가 되는 그 날까지! ✨</div>
+              <div className="text-lg font-semibold text-gray-900 mb-3">외환 마스터가 되는 그 날까지✨</div>
               <div className="text-lg font-semibold text-gray-900 mb-1">📅 예선 25.08.27 (수) 17:00</div>
               <div className="text-lg font-semibold text-gray-900 mb-4">📅 본선 25.09.12 (금) 16:00</div>
             </div>
