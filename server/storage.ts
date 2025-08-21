@@ -20,6 +20,9 @@ export interface IStorage {
   // Responses
   createResponse(response: InsertResponse): Promise<Response>;
   getResponsesForSession(sessionId: string): Promise<Response[]>;
+  
+  // Utility
+  clearAllData(): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -138,6 +141,14 @@ export class DatabaseStorage implements IStorage {
 
   async getResponsesForSession(sessionId: string): Promise<Response[]> {
     return await db.select().from(responses).where(eq(responses.sessionId, sessionId));
+  }
+
+  async clearAllData(): Promise<void> {
+    // 외래키 제약으로 인해 순서대로 삭제
+    await db.delete(responses);
+    await db.delete(sessions);
+    await db.delete(choices);
+    await db.delete(questions);
   }
 }
 
@@ -271,6 +282,13 @@ export class MemStorage implements IStorage {
     return Array.from(this.responses.values()).filter(
       response => response.sessionId === sessionId
     );
+  }
+
+  async clearAllData(): Promise<void> {
+    this.responses.clear();
+    this.sessions.clear();
+    this.choices.clear();
+    this.questions.clear();
   }
 }
 

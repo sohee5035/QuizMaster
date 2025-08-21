@@ -460,9 +460,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
               }
             }
 
+            const successCount = results.filter(r => r.success).length;
+            const failedResults = results.filter(r => !r.success);
+            
             res.json({ 
-              message: `CSV 파일 처리 완료. 총 ${csvData.length}개 문제 중 ${results.filter(r => r.success).length}개 성공`,
-              results 
+              message: `CSV 파일 처리 완료. 총 ${csvData.length}개 문제 중 ${successCount}개 성공`,
+              results,
+              errors: failedResults.length > 0 ? failedResults.slice(0, 5) : [] // 처음 5개 에러만 표시
             });
           } catch (error) {
             console.error("Error processing CSV data:", error);
@@ -477,6 +481,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error uploading CSV:", error);
       res.status(500).json({ message: "CSV 업로드에 실패했습니다." });
+    }
+  });
+
+  // 관리자 API - 모든 데이터 삭제 (위험한 기능)
+  app.delete("/api/admin/questions/clear", async (req, res) => {
+    try {
+      await storage.clearAllData();
+      res.json({ message: "모든 문제와 선택지가 삭제되었습니다." });
+    } catch (error) {
+      console.error("Error clearing data:", error);
+      res.status(500).json({ message: "데이터 삭제에 실패했습니다." });
     }
   });
 

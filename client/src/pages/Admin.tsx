@@ -208,9 +208,17 @@ export default function Admin() {
       return response.json();
     },
     onSuccess: (data) => {
+      let description = data.message || "CSV 파일이 성공적으로 업로드되었습니다.";
+      
+      // 에러가 있으면 첫 번째 에러 메시지를 추가로 표시
+      if (data.errors && data.errors.length > 0) {
+        description += `\n첫 번째 오류: ${data.errors[0].error}`;
+      }
+      
       toast({
-        title: "성공",
-        description: data.message || "CSV 파일이 성공적으로 업로드되었습니다.",
+        title: data.errors && data.errors.length > 0 ? "부분 성공" : "성공",
+        description,
+        variant: data.errors && data.errors.length > 0 ? "destructive" : "default",
       });
       setCsvFile(null);
       if (fileInputRef.current) {
@@ -242,6 +250,43 @@ export default function Admin() {
   const handleCsvUpload = () => {
     if (csvFile) {
       csvUploadMutation.mutate(csvFile);
+    }
+  };
+
+  // 모든 데이터 삭제 mutation
+  const clearDataMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch("/api/admin/questions/clear", {
+        method: "DELETE",
+      });
+      
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(error);
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "삭제 완료",
+        description: data.message || "모든 데이터가 삭제되었습니다.",
+      });
+      // 캐시 무효화
+      queryClient.invalidateQueries({ queryKey: ['/api/questions'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "오류",
+        description: error.message || "데이터 삭제에 실패했습니다.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleClearData = () => {
+    if (window.confirm("⚠️ 정말로 모든 문제와 데이터를 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다!")) {
+      clearDataMutation.mutate();
     }
   };
 
@@ -594,6 +639,23 @@ export default function Admin() {
                       data-testid="button-upload-csv"
                     >
                       {csvUploadMutation.isPending ? "업로드 중..." : "CSV 파일 업로드"}
+                    </Button>
+                  </div>
+
+                  {/* 데이터 삭제 섹션 */}
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <h3 className="font-semibold text-red-800 mb-2">🗑️ 모든 데이터 삭제</h3>
+                    <p className="text-sm text-red-700 mb-3">
+                      ⚠️ 위험: 데이터베이스의 모든 문제와 선택지를 완전히 삭제합니다. 이 작업은 되돌릴 수 없습니다.
+                    </p>
+                    <Button
+                      onClick={handleClearData}
+                      disabled={clearDataMutation.isPending}
+                      variant="destructive"
+                      className="w-full"
+                      data-testid="button-clear-data"
+                    >
+                      {clearDataMutation.isPending ? "삭제 중..." : "⚠️ 모든 데이터 삭제"}
                     </Button>
                   </div>
                 </div>
