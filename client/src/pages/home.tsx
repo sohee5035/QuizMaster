@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import mascotImage from "@assets/image_1755743912628.png";
+import mascotImage from "@assets/image_1755746554379.png";
 
 interface HomeProps {
   onStart: (questionCount?: number) => void;
