@@ -27,13 +27,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Start a new session and return first question
   app.post("/api/session/start", async (req, res) => {
     try {
-      const { mode = "study", questionCount } = req.body;
+      const { mode = "study", questionCount, difficulty } = req.body;
       
       const session = await storage.createSession({ mode });
       let questions = await storage.getQuestions();
       
       if (questions.length === 0) {
         return res.status(404).json({ message: "No questions available" });
+      }
+
+      // Filter by difficulty if specified
+      if (difficulty && difficulty >= 1 && difficulty <= 3) {
+        questions = questions.filter(q => q.difficulty === difficulty);
+        if (questions.length === 0) {
+          return res.status(404).json({ message: `No questions available for difficulty ${difficulty}` });
+        }
       }
 
       // Always shuffle questions for randomized order

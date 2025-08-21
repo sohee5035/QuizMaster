@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import mascotImage from "@assets/Adobe Express 2025-08-21 12시 40분 8초_1755747624195.png";
 
 interface HomeProps {
-  onStart: (questionCount?: number) => void;
+  onStart: (questionCount?: number, difficulty?: number) => void;
 }
 
 export default function Home({ onStart }: HomeProps) {
@@ -44,6 +44,34 @@ export default function Home({ onStart }: HomeProps) {
             >
               랜덤 10문제 시작
             </Button>
+
+            {/* 난이도별 문제풀이 */}
+            <div className="border-t pt-4 mt-6">
+              <h3 className="text-lg font-semibold text-gray-700 mb-3 text-center">난이도별 문제풀이</h3>
+              <div className="grid grid-cols-3 gap-3">
+                <Button
+                  onClick={() => onStart(undefined, 1)}
+                  className="bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-4 rounded-xl transition-colors duration-200 shadow-sm"
+                  data-testid="button-start-difficulty-1"
+                >
+                  😊 쉬움
+                </Button>
+                <Button
+                  onClick={() => onStart(undefined, 2)}
+                  className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-4 rounded-xl transition-colors duration-200 shadow-sm"
+                  data-testid="button-start-difficulty-2"
+                >
+                  😐 보통
+                </Button>
+                <Button
+                  onClick={() => onStart(undefined, 3)}
+                  className="bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-4 rounded-xl transition-colors duration-200 shadow-sm"
+                  data-testid="button-start-difficulty-3"
+                >
+                  😰 어려움
+                </Button>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>

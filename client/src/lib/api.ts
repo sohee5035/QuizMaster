@@ -2,10 +2,13 @@ import { apiRequest } from "./queryClient";
 import type { SessionResponse, AnswerResponse, ResultsResponse } from "@shared/schema";
 
 export const api = {
-  startSession: async (mode: string = "study", questionCount?: number): Promise<SessionResponse> => {
+  startSession: async (mode: string = "study", questionCount?: number, difficulty?: number): Promise<SessionResponse> => {
     const body: any = { mode };
     if (questionCount) {
       body.questionCount = questionCount;
+    }
+    if (difficulty) {
+      body.difficulty = difficulty;
     }
     const response = await apiRequest("POST", "/api/session/start", body);
     return response.json();
