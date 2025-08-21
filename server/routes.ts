@@ -650,11 +650,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // 정적 파일과 API 경로는 제외
     if (!req.path.startsWith('/api') && !req.path.includes('.')) {
       try {
-        await storage.recordPageView({
-          ipAddress: req.ip || req.connection.remoteAddress || 'unknown',
+        const realIP = req.get('X-Real-IP') || 
+                      req.get('X-Forwarded-For')?.split(',')[0] || 
+                      req.ip || 
+                      req.connection.remoteAddress || 
+                      'unknown';
+        
+        const pageViewData = {
+          ipAddress: realIP,
           userAgent: req.get('User-Agent') || '',
           page: req.path
+        };
+        
+        console.log('📊 페이지뷰 기록:', {
+          path: req.path,
+          ip: realIP,
+          userAgent: req.get('User-Agent'),
+          headers: {
+            'X-Real-IP': req.get('X-Real-IP'),
+            'X-Forwarded-For': req.get('X-Forwarded-For')
+          }
         });
+        
+        await storage.recordPageView(pageViewData);
       } catch (error) {
         console.error('페이지 조회수 기록 실패:', error);
       }
