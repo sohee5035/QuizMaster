@@ -31,7 +31,7 @@ export default function Home({ onStart }: HomeProps) {
             <div className="border-t border-yellow-300 pt-4">
               <div className="text-sm text-gray-700 mb-2">📘 본 페이지는 외환사업부 410의 출제 예상 문제를 보기와 순서가 랜덤하게 나오도록 설정한 것입니다.</div>
               <div className="text-sm text-gray-700 mb-2">⚖️ 하단 난이도별 문제는 제작자인 제가 느끼는 난이도이니, 참고해주세요~!</div>
-              <div className="text-sm text-gray-700">😎 참고로 저도 문제 풀 다가 모바일로 보기 편하게 한 번 만들어봤어요. 문제를 수기로 등록한지라, 오류가 있을수도 있습니다 ㅎㅎ 오류 발견하시면 왕소희대리 앞으로 연락주세요!</div>
+              <div className="text-sm text-gray-700">😎 참고로 저도 문제 풀다가 모바일로 보기 편하게 한 번 만들어봤어요. 문제를 수기로 등록한지라, 오류가 있을수도 있습니다 ㅎㅎ 오류 발견하시면 왕소희대리 앞으로 연락주세요!</div>
             </div>
           </div>
 
