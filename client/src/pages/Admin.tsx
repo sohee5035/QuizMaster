@@ -40,9 +40,7 @@ export default function Admin() {
     source: ""
   });
 
-  // 일괄 등록 상태
-  const [bulkData, setBulkData] = useState("");
-  const [csvFile, setCsvFile] = useState<File | null>(null);
+
 
   const createQuestionMutation = useMutation({
     mutationFn: (data: any) => fetch("/api/admin/questions", {
@@ -90,51 +88,7 @@ export default function Admin() {
     },
   });
 
-  const bulkCreateMutation = useMutation({
-    mutationFn: (data: any) => fetch("/api/admin/questions/bulk", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    }).then(res => res.json()),
-    onSuccess: () => {
-      toast({
-        title: "성공",
-        description: "문제들이 성공적으로 등록되었습니다.",
-      });
-      setBulkData("");
-      setCsvFile(null);
-    },
-    onError: (error: any) => {
-      toast({
-        title: "오류",
-        description: error.message || "일괄 등록에 실패했습니다.",
-        variant: "destructive",
-      });
-    },
-  });
 
-  const csvUploadMutation = useMutation({
-    mutationFn: (formData: FormData) => fetch("/api/admin/questions/csv", {
-      method: "POST",
-      body: formData,
-    }).then(res => res.json()),
-    onSuccess: () => {
-      toast({
-        title: "성공",
-        description: "CSV 파일이 성공적으로 등록되었습니다.",
-      });
-      setCsvFile(null);
-    },
-    onError: (error: any) => {
-      toast({
-        title: "오류",
-        description: error.message || "CSV 업로드에 실패했습니다.",
-        variant: "destructive",
-      });
-    },
-  });
 
   const handleOxSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -165,42 +119,7 @@ export default function Admin() {
     });
   };
 
-  const handleBulkSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const data = JSON.parse(bulkData);
-      bulkCreateMutation.mutate(data);
-    } catch (error) {
-      toast({
-        title: "오류",
-        description: "JSON 형식이 올바르지 않습니다.",
-        variant: "destructive",
-      });
-    }
-  };
 
-  const handleCsvSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!csvFile) {
-      toast({
-        title: "오류",
-        description: "CSV 파일을 선택해주세요.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("csv", csvFile);
-    csvUploadMutation.mutate(formData);
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setCsvFile(file);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
@@ -212,11 +131,9 @@ export default function Admin() {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="ox" className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="ox">OX 문제</TabsTrigger>
                 <TabsTrigger value="mcq">사지선다</TabsTrigger>
-                <TabsTrigger value="csv">CSV 업로드</TabsTrigger>
-                <TabsTrigger value="bulk">JSON 등록</TabsTrigger>
               </TabsList>
 
               <TabsContent value="ox" className="space-y-4">
@@ -464,64 +381,7 @@ export default function Admin() {
                 </form>
               </TabsContent>
 
-              <TabsContent value="csv" className="space-y-4">
-                <div>
-                  <Label htmlFor="csv-file">CSV 파일</Label>
-                  <Input
-                    id="csv-file"
-                    type="file"
-                    accept=".csv"
-                    onChange={handleFileChange}
-                    data-testid="input-csv-file"
-                  />
-                  {csvFile && (
-                    <p className="text-sm text-gray-600 mt-2">
-                      선택된 파일: {csvFile.name}
-                    </p>
-                  )}
-                  <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                    <h4 className="font-medium mb-2">CSV 파일 형식 안내:</h4>
-                    <div className="text-sm text-gray-600 space-y-2">
-                      <p><strong>OX 문제:</strong> question_id, stem, answer, explanation, tags, difficulty, source</p>
-                      <p><strong>사지선다:</strong> question_id, stem, choice1, choice2, choice3, choice4, correct_answer, explanation, tags, difficulty, source</p>
-                      <p>첫 번째 행은 헤더로 사용됩니다.</p>
-                    </div>
-                  </div>
-                </div>
 
-                <Button 
-                  onClick={handleCsvSubmit}
-                  disabled={csvUploadMutation.isPending || !csvFile}
-                  data-testid="button-submit-csv"
-                >
-                  {csvUploadMutation.isPending ? "업로드 중..." : "CSV 파일 업로드"}
-                </Button>
-              </TabsContent>
-
-              <TabsContent value="bulk" className="space-y-4">
-                <div>
-                  <Label htmlFor="bulk-data">JSON 데이터</Label>
-                  <Textarea
-                    id="bulk-data"
-                    value={bulkData}
-                    onChange={(e) => setBulkData(e.target.value)}
-                    placeholder="JSON 형식으로 문제 데이터를 입력하세요..."
-                    className="min-h-[300px]"
-                    data-testid="textarea-bulk-data"
-                  />
-                  <p className="text-sm text-gray-600 mt-2">
-                    Excel 내용을 JSON 형식으로 변환해서 붙여넣으세요.
-                  </p>
-                </div>
-
-                <Button 
-                  onClick={handleBulkSubmit}
-                  disabled={bulkCreateMutation.isPending}
-                  data-testid="button-submit-bulk"
-                >
-                  {bulkCreateMutation.isPending ? "등록 중..." : "일괄 등록"}
-                </Button>
-              </TabsContent>
             </Tabs>
           </CardContent>
         </Card>
