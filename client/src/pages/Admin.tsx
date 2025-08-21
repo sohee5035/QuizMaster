@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -88,6 +88,65 @@ export default function Admin() {
     },
   });
 
+  // CSV 파일 상태와 참조
+  const [csvFile, setCsvFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const csvUploadMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('csv', file);
+      
+      const response = await fetch("/api/admin/questions/csv", {
+        method: "POST",
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(error);
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "성공",
+        description: data.message || "CSV 파일이 성공적으로 업로드되었습니다.",
+      });
+      setCsvFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: "오류",
+        description: error.message || "CSV 업로드에 실패했습니다.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type === 'text/csv') {
+      setCsvFile(file);
+    } else {
+      toast({
+        title: "오류",
+        description: "CSV 파일만 업로드 가능합니다.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCsvUpload = () => {
+    if (csvFile) {
+      csvUploadMutation.mutate(csvFile);
+    }
+  };
+
 
 
   const handleOxSubmit = (e: React.FormEvent) => {
@@ -131,9 +190,10 @@ export default function Admin() {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="ox" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="ox">OX 문제</TabsTrigger>
                 <TabsTrigger value="mcq">사지선다</TabsTrigger>
+                <TabsTrigger value="csv">CSV 업로드</TabsTrigger>
               </TabsList>
 
               <TabsContent value="ox" className="space-y-4">
@@ -381,6 +441,42 @@ export default function Admin() {
                 </form>
               </TabsContent>
 
+              <TabsContent value="csv" className="space-y-4">
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="csv-file">CSV 파일 선택</Label>
+                    <Input
+                      id="csv-file"
+                      type="file"
+                      accept=".csv"
+                      ref={fileInputRef}
+                      onChange={handleFileChange}
+                      className="cursor-pointer"
+                      data-testid="input-csv-file"
+                    />
+                    <p className="text-sm text-gray-500 mt-1">
+                      CSV 파일 형식: question_id, stem, explanation, tags, difficulty, source, answer/choices
+                    </p>
+                  </div>
+                  
+                  {csvFile && (
+                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-sm text-blue-700">
+                        선택된 파일: {csvFile.name} ({(csvFile.size / 1024).toFixed(1)} KB)
+                      </p>
+                    </div>
+                  )}
+
+                  <Button
+                    onClick={handleCsvUpload}
+                    disabled={!csvFile || csvUploadMutation.isPending}
+                    className="w-full"
+                    data-testid="button-upload-csv"
+                  >
+                    {csvUploadMutation.isPending ? "업로드 중..." : "CSV 파일 업로드"}
+                  </Button>
+                </div>
+              </TabsContent>
 
             </Tabs>
           </CardContent>
