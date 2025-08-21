@@ -13,7 +13,12 @@ import { Eye, Calendar, BarChart3 } from "lucide-react";
 
 // 조회수 통계 컴포넌트
 function StatsCard() {
-  const { data: stats, isLoading } = useQuery<{todayViews: number, totalViews: number}>({
+  const { data: stats, isLoading } = useQuery<{
+    todayViews: number; 
+    totalViews: number;
+    todayUniqueVisitors: number;
+    totalUniqueVisitors: number;
+  }>({
     queryKey: ['/api/admin/stats'],
     refetchInterval: 30000, // 30초마다 자동 새로고침
   });
@@ -36,7 +41,12 @@ function StatsCard() {
     );
   }
 
-  const { todayViews = 0, totalViews = 0 } = stats || {};
+  const { 
+    todayViews = 0, 
+    totalViews = 0, 
+    todayUniqueVisitors = 0, 
+    totalUniqueVisitors = 0 
+  } = stats || {};
 
   return (
     <Card>
@@ -57,7 +67,7 @@ function StatsCard() {
             <p className="text-2xl font-bold text-blue-700 dark:text-blue-300" data-testid="text-today-views">
               {todayViews.toLocaleString()}
             </p>
-            <p className="text-xs text-blue-600">조회수</p>
+            <p className="text-xs text-blue-600">조회수 ({todayUniqueVisitors}명 방문)</p>
           </div>
           
           <div className="bg-green-50 dark:bg-green-950 p-4 rounded-lg border">
@@ -68,7 +78,7 @@ function StatsCard() {
             <p className="text-2xl font-bold text-green-700 dark:text-green-300" data-testid="text-total-views">
               {totalViews.toLocaleString()}
             </p>
-            <p className="text-xs text-green-600">누적 조회수</p>
+            <p className="text-xs text-green-600">누적 조회수 ({totalUniqueVisitors}명 방문)</p>
           </div>
         </div>
         

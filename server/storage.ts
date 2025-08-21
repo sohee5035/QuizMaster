@@ -25,6 +25,8 @@ export interface IStorage {
   recordPageView(pageView: InsertPageView): Promise<PageView>;
   getTodayPageViews(): Promise<number>;
   getTotalPageViews(): Promise<number>;
+  getTodayUniqueVisitors(): Promise<number>;
+  getTotalUniqueVisitors(): Promise<number>;
   
   // Utility
   clearAllData(): Promise<void>;
@@ -172,6 +174,26 @@ export class DatabaseStorage implements IStorage {
   async getTotalPageViews(): Promise<number> {
     const result = await db
       .select({ count: sql<number>`count(*)` })
+      .from(pageViews);
+    
+    return Number(result[0]?.count || 0);
+  }
+
+  async getTodayUniqueVisitors(): Promise<number> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const result = await db
+      .select({ count: sql<number>`count(distinct ip_address)` })
+      .from(pageViews)
+      .where(gte(pageViews.visitedAt, today));
+    
+    return Number(result[0]?.count || 0);
+  }
+
+  async getTotalUniqueVisitors(): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`count(distinct ip_address)` })
       .from(pageViews);
     
     return Number(result[0]?.count || 0);
@@ -344,6 +366,23 @@ export class MemStorage implements IStorage {
 
   async getTotalPageViews(): Promise<number> {
     return this.pageViews.size;
+  }
+
+  async getTodayUniqueVisitors(): Promise<number> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const todayViews = Array.from(this.pageViews.values()).filter(
+      pv => pv.visitedAt && pv.visitedAt >= today
+    );
+    
+    const uniqueIPs = new Set(todayViews.map(pv => pv.ipAddress));
+    return uniqueIPs.size;
+  }
+
+  async getTotalUniqueVisitors(): Promise<number> {
+    const uniqueIPs = new Set(Array.from(this.pageViews.values()).map(pv => pv.ipAddress));
+    return uniqueIPs.size;
   }
 
   async clearAllData(): Promise<void> {

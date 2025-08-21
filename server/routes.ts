@@ -38,14 +38,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin stats endpoint (before page view middleware)
   app.get("/api/admin/stats", async (req, res) => {
     try {
-      const [todayViews, totalViews] = await Promise.all([
+      const [todayViews, totalViews, todayUniqueVisitors, totalUniqueVisitors] = await Promise.all([
         storage.getTodayPageViews(),
-        storage.getTotalPageViews()
+        storage.getTotalPageViews(),
+        storage.getTodayUniqueVisitors(),
+        storage.getTotalUniqueVisitors()
       ]);
       
       res.json({
         todayViews,
-        totalViews
+        totalViews,
+        todayUniqueVisitors,
+        totalUniqueVisitors
       });
     } catch (error) {
       console.error('Stats error:', error);
