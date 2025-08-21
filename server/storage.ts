@@ -1,4 +1,7 @@
 import { type Question, type Choice, type Session, type Response, type InsertQuestion, type InsertChoice, type InsertSession, type InsertResponse } from "@shared/schema";
+import { db } from "./db";
+import { questions, choices, sessions, responses } from "@shared/schema";
+import { eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -17,6 +20,125 @@ export interface IStorage {
   // Responses
   createResponse(response: InsertResponse): Promise<Response>;
   getResponsesForSession(sessionId: string): Promise<Response[]>;
+}
+
+export class DatabaseStorage implements IStorage {
+  constructor() {
+    // Initialize database with seed data
+    this.initializeDatabase();
+  }
+
+  private async initializeDatabase() {
+    try {
+      // Check if data already exists
+      const existingQuestions = await db.select().from(questions);
+      if (existingQuestions.length > 0) {
+        return; // Data already exists
+      }
+
+      // Seed the test questions exactly as specified
+      const q1 = {
+        id: "q1",
+        type: "MCQ",
+        stem: "다음 중 외국통화매매 거래시 영업점장 전결 최대 환율 우대율이 80%가 아닌 통화는?",
+        explanation: "CNY통화는 영업점장 전결로 최대 50%까지 환율우대율이 적용됩니다.",
+        tags: "환율우대",
+        difficulty: 2,
+        source: "외환 규정집",
+        answer: null,
+      };
+
+      const q2 = {
+        id: "q2",
+        type: "OX",
+        stem: "외국통화 매입시 손상화폐의 경우 손상정도에 따라 일부 금액만 지불하고 매입이 가능하다.",
+        explanation: "손상화폐나 위변조통화는 매매가 불가능합니다. (외환 > 외환공통 > 제1장 > 제1절 > 제1관 외국통화매입신청서 접수",
+        tags: "외환공통",
+        difficulty: 1,
+        source: "외환 규정집",
+        answer: false,
+      };
+
+      // Insert questions
+      await db.insert(questions).values([q1, q2]);
+
+      // Q1 choices
+      const choices1 = [
+        { id: "q1c1", questionId: "q1", content: "USD", isCorrect: false },
+        { id: "q1c2", questionId: "q1", content: "JPY", isCorrect: false },
+        { id: "q1c3", questionId: "q1", content: "CNY", isCorrect: true },
+        { id: "q1c4", questionId: "q1", content: "EUR", isCorrect: false },
+      ];
+
+      await db.insert(choices).values(choices1);
+    } catch (error) {
+      console.error("Failed to initialize database:", error);
+    }
+  }
+  async getQuestion(id: string): Promise<Question | undefined> {
+    const [question] = await db.select().from(questions).where(eq(questions.id, id));
+    return question || undefined;
+  }
+
+  async getQuestions(): Promise<Question[]> {
+    return await db.select().from(questions);
+  }
+
+  async createQuestion(insertQuestion: InsertQuestion): Promise<Question> {
+    const id = insertQuestion.id || randomUUID();
+    const [question] = await db
+      .insert(questions)
+      .values({ ...insertQuestion, id })
+      .returning();
+    return question;
+  }
+
+  async getChoicesForQuestion(questionId: string): Promise<Choice[]> {
+    return await db.select().from(choices).where(eq(choices.questionId, questionId));
+  }
+
+  async createChoice(insertChoice: InsertChoice): Promise<Choice> {
+    const id = insertChoice.id || randomUUID();
+    const [choice] = await db
+      .insert(choices)
+      .values({ ...insertChoice, id })
+      .returning();
+    return choice;
+  }
+
+  async createSession(insertSession: InsertSession): Promise<Session> {
+    const id = randomUUID();
+    const [session] = await db
+      .insert(sessions)
+      .values({ ...insertSession, id })
+      .returning();
+    return session;
+  }
+
+  async getSession(id: string): Promise<Session | undefined> {
+    const [session] = await db.select().from(sessions).where(eq(sessions.id, id));
+    return session || undefined;
+  }
+
+  async endSession(id: string): Promise<void> {
+    await db
+      .update(sessions)
+      .set({ endedAt: new Date() })
+      .where(eq(sessions.id, id));
+  }
+
+  async createResponse(insertResponse: InsertResponse): Promise<Response> {
+    const id = randomUUID();
+    const [response] = await db
+      .insert(responses)
+      .values({ ...insertResponse, id })
+      .returning();
+    return response;
+  }
+
+  async getResponsesForSession(sessionId: string): Promise<Response[]> {
+    return await db.select().from(responses).where(eq(responses.sessionId, sessionId));
+  }
 }
 
 export class MemStorage implements IStorage {
@@ -142,4 +264,4 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();

@@ -19,8 +19,8 @@ Preferred communication style: Simple, everyday language.
 
 ### Backend Architecture
 - **Framework**: Express.js with TypeScript, serving both API endpoints and static assets
-- **Database**: PostgreSQL with Drizzle ORM for type-safe database operations
-- **Session Management**: In-memory storage for question sessions and user responses
+- **Database**: PostgreSQL with Drizzle ORM for type-safe database operations (implemented)
+- **Storage**: Database-backed storage using Neon PostgreSQL with automatic data seeding
 - **API Design**: RESTful endpoints for session management, question retrieval, and answer submission
 
 ### Data Architecture
@@ -66,3 +66,12 @@ Preferred communication style: Simple, everyday language.
 - Configured for PostgreSQL dialect with environment-based connection strings
 - Migration files stored in `./migrations` directory with schema defined in `./shared/schema.ts`
 - Supports both development and production database environments
+
+## Recent Changes
+
+### Database Integration Completed (August 21, 2025)
+- Successfully migrated from in-memory storage to PostgreSQL database using Neon
+- Implemented DatabaseStorage class replacing MemStorage for persistent data
+- Database schema pushed and tables created with `npm run db:push`
+- Automatic data seeding implemented for test questions and choices
+- All existing functionality preserved with database persistence
