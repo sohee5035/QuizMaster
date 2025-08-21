@@ -371,6 +371,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const results: any[] = [];
       const csvData: any[] = [];
+      let rowCount = 0;
 
       // CSV 파일을 스트림으로 처리
       const readable = new Readable();
@@ -387,12 +388,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.log(`CSV 데이터 처리 시작. 총 ${csvData.length}개 행`);
             
             for (const row of csvData) {
-              const questionId = row.question_id || row.questionId;
-              const stem = row.stem;
-              const explanation = row.explanation;
-              const tags = row.tags || null;
-              const difficulty = row.difficulty ? parseInt(row.difficulty) : null;
-              const source = row.source || null;
+              // 한국어와 영어 헤더 모두 지원
+              const questionId = row.question_id || row.questionId || row["문제ID"];
+              const stem = row.stem || row["문제내용"];
+              const explanation = row.explanation || row["해설"];
+              const tags = row.tags || row["태그"] || null;
+              const difficulty = row.difficulty || row["난이도"] ? parseInt(row.difficulty || row["난이도"]) : null;
+              const source = row.source || row["출처"] || null;
 
               console.log(`처리 중인 문제: ${questionId}`);
 
@@ -411,17 +413,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
               }
 
               try {
-                // OX 문제인지 사지선다인지 판단 (더 명확한 기준)
-                const hasAnswer = row.answer && row.answer.trim() !== "";
-                const hasChoices = row.choice1 && row.choice2 && row.choice3 && row.choice4;
-                const isOX = hasAnswer && (row.answer.toUpperCase() === "O" || row.answer.toUpperCase() === "X" || 
-                             row.answer === "true" || row.answer === "false");
+                // 한국어와 영어 필드 모두 지원
+                const answer = row.answer || row["정답"];
+                const choice1 = row.choice1 || row["선택지1"];
+                const choice2 = row.choice2 || row["선택지2"];
+                const choice3 = row.choice3 || row["선택지3"];
+                const choice4 = row.choice4 || row["선택지4"];
+                const correctAnswer = parseInt(row.correct_answer || row.correctAnswer || row["정답번호"]);
+                
+                // OX 문제인지 사지선다인지 판단
+                const hasAnswer = answer && answer.trim() !== "";
+                const hasChoices = choice1 && choice2 && choice3 && choice4;
+                const isOX = hasAnswer && (answer.toUpperCase() === "O" || answer.toUpperCase() === "X" || 
+                             answer === "true" || answer === "false");
                 
                 console.log(`문제 ${questionId}: hasAnswer=${hasAnswer}, hasChoices=${hasChoices}, isOX=${isOX}`);
                 
                 if (isOX) {
                   // OX 문제 처리
-                  const answer = row.answer.toUpperCase() === "O" || row.answer === "true";
+                  const answerBoolean = answer.toUpperCase() === "O" || answer === "true";
                   
                   await storage.createQuestion({
                     id: questionId,
@@ -431,16 +441,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     tags,
                     difficulty,
                     source,
-                    answer,
+                    answer: answerBoolean,
                   });
                 } else if (hasChoices) {
                   // 사지선다 문제 처리
-                  const choice1 = row.choice1;
-                  const choice2 = row.choice2;
-                  const choice3 = row.choice3;
-                  const choice4 = row.choice4;
-                  const correctAnswer = parseInt(row.correct_answer || row.correctAnswer);
-
                   if (!choice1 || !choice2 || !choice3 || !choice4 || !correctAnswer) {
                     results.push({ questionId, success: false, error: "선택지 또는 정답 번호가 누락됨" });
                     continue;
@@ -459,12 +463,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   });
 
                   // 선택지 생성
-                  const choices = [choice1, choice2, choice3, choice4];
-                  for (let i = 0; i < choices.length; i++) {
+                  const choicesArray = [choice1, choice2, choice3, choice4];
+                  for (let i = 0; i < choicesArray.length; i++) {
                     await storage.createChoice({
                       id: `${questionId}c${i + 1}`,
                       questionId: questionId,
-                      content: choices[i],
+                      content: choicesArray[i],
                       isCorrect: (i + 1) === correctAnswer,
                     });
                   }
