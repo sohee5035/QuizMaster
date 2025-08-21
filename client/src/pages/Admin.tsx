@@ -164,6 +164,37 @@ export default function Admin() {
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // CSV 다운로드 함수
+  const handleCsvDownload = async () => {
+    try {
+      const response = await fetch("/api/admin/questions/download");
+      if (!response.ok) {
+        throw new Error("다운로드에 실패했습니다.");
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'kb_exam_questions.csv';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast({
+        title: "성공",
+        description: "문제 데이터가 성공적으로 다운로드되었습니다.",
+      });
+    } catch (error) {
+      toast({
+        title: "오류", 
+        description: "다운로드에 실패했습니다.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const csvUploadMutation = useMutation({
     mutationFn: async (file: File) => {
       const formData = new FormData();
@@ -515,38 +546,58 @@ export default function Admin() {
 
               <TabsContent value="csv" className="space-y-4">
                 <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="csv-file">CSV 파일 선택</Label>
-                    <Input
-                      id="csv-file"
-                      type="file"
-                      accept=".csv"
-                      ref={fileInputRef}
-                      onChange={handleFileChange}
-                      className="cursor-pointer"
-                      data-testid="input-csv-file"
-                    />
-                    <p className="text-sm text-gray-500 mt-1">
-                      CSV 파일 형식: question_id, stem, explanation, tags, difficulty, source, answer/choices
+                  {/* CSV 다운로드 섹션 */}
+                  <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <h3 className="font-semibold text-green-800 mb-2">📥 현재 문제 데이터 다운로드</h3>
+                    <p className="text-sm text-green-700 mb-3">
+                      현재 데이터베이스에 저장된 모든 문제를 CSV 파일로 다운로드할 수 있습니다.
                     </p>
+                    <Button
+                      onClick={handleCsvDownload}
+                      variant="outline"
+                      className="w-full border-green-300 text-green-700 hover:bg-green-100"
+                      data-testid="button-download-csv"
+                    >
+                      📁 CSV 파일 다운로드 (100개 문제)
+                    </Button>
                   </div>
-                  
-                  {csvFile && (
-                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                      <p className="text-sm text-blue-700">
-                        선택된 파일: {csvFile.name} ({(csvFile.size / 1024).toFixed(1)} KB)
+
+                  {/* CSV 업로드 섹션 */}
+                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <h3 className="font-semibold text-blue-800 mb-2">📤 CSV 파일 업로드</h3>
+                    <div>
+                      <Label htmlFor="csv-file">CSV 파일 선택</Label>
+                      <Input
+                        id="csv-file"
+                        type="file"
+                        accept=".csv"
+                        ref={fileInputRef}
+                        onChange={handleFileChange}
+                        className="cursor-pointer"
+                        data-testid="input-csv-file"
+                      />
+                      <p className="text-sm text-gray-500 mt-1">
+                        CSV 파일 형식: question_id, stem, explanation, tags, difficulty, source, answer/choices
                       </p>
                     </div>
-                  )}
+                    
+                    {csvFile && (
+                      <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg mt-3">
+                        <p className="text-sm text-blue-700">
+                          선택된 파일: {csvFile.name} ({(csvFile.size / 1024).toFixed(1)} KB)
+                        </p>
+                      </div>
+                    )}
 
-                  <Button
-                    onClick={handleCsvUpload}
-                    disabled={!csvFile || csvUploadMutation.isPending}
-                    className="w-full"
-                    data-testid="button-upload-csv"
-                  >
-                    {csvUploadMutation.isPending ? "업로드 중..." : "CSV 파일 업로드"}
-                  </Button>
+                    <Button
+                      onClick={handleCsvUpload}
+                      disabled={!csvFile || csvUploadMutation.isPending}
+                      className="w-full mt-3"
+                      data-testid="button-upload-csv"
+                    >
+                      {csvUploadMutation.isPending ? "업로드 중..." : "CSV 파일 업로드"}
+                    </Button>
+                  </div>
                 </div>
               </TabsContent>
 

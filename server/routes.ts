@@ -480,6 +480,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 관리자 API - CSV 다운로드
+  app.get("/api/admin/questions/download", async (req, res) => {
+    try {
+      const questions = await storage.getQuestions();
+      
+      if (questions.length === 0) {
+        return res.status(404).json({ message: "다운로드할 문제가 없습니다." });
+      }
+
+      // CSV 헤더 설정
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', 'attachment; filename="kb_exam_questions.csv"');
+      
+      // BOM 추가 (한글 깨짐 방지)
+      res.write('\uFEFF');
+      
+      // CSV 헤더
+      const header = 'question_id,type,stem,explanation,tags,difficulty,source,answer,choice1,choice2,choice3,choice4,correct_answer\n';
+      res.write(header);
+
+      // 각 문제를 CSV 형식으로 변환
+      for (const question of questions) {
+        let csvRow = '';
+        
+        // 기본 정보
+        csvRow += `"${question.id}",`;
+        csvRow += `"${question.type}",`;
+        csvRow += `"${question.stem.replace(/"/g, '""')}",`;
+        csvRow += `"${question.explanation?.replace(/"/g, '""') || ''}",`;
+        csvRow += `"${question.tags || ''}",`;
+        csvRow += `"${question.difficulty || ''}",`;
+        csvRow += `"${question.source || ''}",`;
+
+        if (question.type === "OX") {
+          // OX 문제
+          csvRow += `"${question.answer ? 'O' : 'X'}",`;
+          csvRow += ',"","","",""'; // 빈 선택지들
+        } else {
+          // MCQ 문제
+          csvRow += '"",'; // 빈 answer
+          
+          const choices = await storage.getChoicesForQuestion(question.id);
+          const sortedChoices = choices.sort((a, b) => a.id.localeCompare(b.id));
+          
+          // 선택지 4개
+          for (let i = 0; i < 4; i++) {
+            if (i < sortedChoices.length) {
+              csvRow += `"${sortedChoices[i].content.replace(/"/g, '""')}",`;
+            } else {
+              csvRow += '"",';
+            }
+          }
+          
+          // 정답 번호 찾기
+          const correctChoiceIndex = sortedChoices.findIndex(choice => choice.isCorrect);
+          csvRow += `"${correctChoiceIndex + 1}"`;
+        }
+        
+        res.write(csvRow + '\n');
+      }
+      
+      res.end();
+    } catch (error) {
+      console.error("Error downloading CSV:", error);
+      res.status(500).json({ message: "CSV 다운로드에 실패했습니다." });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
