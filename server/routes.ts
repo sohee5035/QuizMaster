@@ -384,6 +384,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
         .on("end", async () => {
           try {
+            console.log(`CSV 데이터 처리 시작. 총 ${csvData.length}개 행`);
+            
             for (const row of csvData) {
               const questionId = row.question_id || row.questionId;
               const stem = row.stem;
@@ -392,15 +394,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
               const difficulty = row.difficulty ? parseInt(row.difficulty) : null;
               const source = row.source || null;
 
+              console.log(`처리 중인 문제: ${questionId}`);
+
               if (!questionId || !stem || !explanation) {
-                results.push({ questionId: questionId || "unknown", success: false, error: "필수 필드 누락" });
+                const missingFields = [];
+                if (!questionId) missingFields.push('question_id');
+                if (!stem) missingFields.push('stem');
+                if (!explanation) missingFields.push('explanation');
+                
+                results.push({ 
+                  questionId: questionId || "unknown", 
+                  success: false, 
+                  error: `필수 필드 누락: ${missingFields.join(', ')}` 
+                });
                 continue;
               }
 
               try {
-                // OX 문제인지 사지선다인지 판단
-                const isOX = row.answer && (row.answer.toUpperCase() === "O" || row.answer.toUpperCase() === "X" || 
+                // OX 문제인지 사지선다인지 판단 (더 명확한 기준)
+                const hasAnswer = row.answer && row.answer.trim() !== "";
+                const hasChoices = row.choice1 && row.choice2 && row.choice3 && row.choice4;
+                const isOX = hasAnswer && (row.answer.toUpperCase() === "O" || row.answer.toUpperCase() === "X" || 
                              row.answer === "true" || row.answer === "false");
+                
+                console.log(`문제 ${questionId}: hasAnswer=${hasAnswer}, hasChoices=${hasChoices}, isOX=${isOX}`);
                 
                 if (isOX) {
                   // OX 문제 처리
@@ -416,7 +433,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     source,
                     answer,
                   });
-                } else {
+                } else if (hasChoices) {
                   // 사지선다 문제 처리
                   const choice1 = row.choice1;
                   const choice2 = row.choice2;
@@ -425,7 +442,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   const correctAnswer = parseInt(row.correct_answer || row.correctAnswer);
 
                   if (!choice1 || !choice2 || !choice3 || !choice4 || !correctAnswer) {
-                    results.push({ questionId, success: false, error: "선택지 또는 정답이 누락됨" });
+                    results.push({ questionId, success: false, error: "선택지 또는 정답 번호가 누락됨" });
                     continue;
                   }
 
@@ -451,6 +468,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
                       isCorrect: (i + 1) === correctAnswer,
                     });
                   }
+                } else {
+                  // OX도 MCQ도 아닌 경우
+                  results.push({ 
+                    questionId, 
+                    success: false, 
+                    error: "문제 타입을 결정할 수 없음 (OX 문제는 answer 필드가, 사지선다는 choice1~4와 correct_answer 필드가 필요)" 
+                  });
+                  continue;
                 }
 
                 results.push({ questionId, success: true });
