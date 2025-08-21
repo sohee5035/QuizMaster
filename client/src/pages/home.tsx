@@ -11,7 +11,7 @@ export default function Home({ onStart }: HomeProps) {
       <Card className="mt-8 shadow-sm">
         <CardContent className="p-8">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">KB 외환 마스터</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">🏆 KB 외환 마스터 👑</h1>
           </div>
 
           <div className="bg-blue-50 rounded-xl border border-blue-200 p-6 mb-8">
