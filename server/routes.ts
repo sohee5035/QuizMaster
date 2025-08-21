@@ -131,14 +131,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const responses = await storage.getResponsesForSession(sessionId);
-      const questions = await storage.getQuestions();
       const currentQuestionIndex = responses.length;
 
-      if (currentQuestionIndex >= questions.length) {
+      // Get the question order for this session
+      const questionOrder = sessionQuestionOrders.get(sessionId);
+      if (!questionOrder || currentQuestionIndex >= questionOrder.length) {
         return res.status(400).json({ message: "No active question to answer" });
       }
 
-      const currentQuestion = questions[currentQuestionIndex];
+      const currentQuestionId = questionOrder[currentQuestionIndex];
+      const currentQuestion = await storage.getQuestion(currentQuestionId);
+      
+      if (!currentQuestion) {
+        return res.status(404).json({ message: "Question not found" });
+      }
       let isCorrect = false;
 
       if (currentQuestion.type === "MCQ") {
