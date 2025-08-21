@@ -42,6 +42,7 @@ export default function Admin() {
 
   // 일괄 등록 상태
   const [bulkData, setBulkData] = useState("");
+  const [csvFile, setCsvFile] = useState<File | null>(null);
 
   const createQuestionMutation = useMutation({
     mutationFn: (data: any) => fetch("/api/admin/questions", {
@@ -103,11 +104,33 @@ export default function Admin() {
         description: "문제들이 성공적으로 등록되었습니다.",
       });
       setBulkData("");
+      setCsvFile(null);
     },
     onError: (error: any) => {
       toast({
         title: "오류",
         description: error.message || "일괄 등록에 실패했습니다.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const csvUploadMutation = useMutation({
+    mutationFn: (formData: FormData) => fetch("/api/admin/questions/csv", {
+      method: "POST",
+      body: formData,
+    }).then(res => res.json()),
+    onSuccess: () => {
+      toast({
+        title: "성공",
+        description: "CSV 파일이 성공적으로 등록되었습니다.",
+      });
+      setCsvFile(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "오류",
+        description: error.message || "CSV 업로드에 실패했습니다.",
         variant: "destructive",
       });
     },
@@ -156,6 +179,29 @@ export default function Admin() {
     }
   };
 
+  const handleCsvSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!csvFile) {
+      toast({
+        title: "오류",
+        description: "CSV 파일을 선택해주세요.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("csv", csvFile);
+    csvUploadMutation.mutate(formData);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setCsvFile(file);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-4xl mx-auto">
@@ -166,10 +212,11 @@ export default function Admin() {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="ox" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="ox">OX 문제</TabsTrigger>
                 <TabsTrigger value="mcq">사지선다</TabsTrigger>
-                <TabsTrigger value="bulk">일괄 등록</TabsTrigger>
+                <TabsTrigger value="csv">CSV 업로드</TabsTrigger>
+                <TabsTrigger value="bulk">JSON 등록</TabsTrigger>
               </TabsList>
 
               <TabsContent value="ox" className="space-y-4">
@@ -415,6 +462,40 @@ export default function Admin() {
                     {createQuestionMutation.isPending ? "등록 중..." : "사지선다 문제 등록"}
                   </Button>
                 </form>
+              </TabsContent>
+
+              <TabsContent value="csv" className="space-y-4">
+                <div>
+                  <Label htmlFor="csv-file">CSV 파일</Label>
+                  <Input
+                    id="csv-file"
+                    type="file"
+                    accept=".csv"
+                    onChange={handleFileChange}
+                    data-testid="input-csv-file"
+                  />
+                  {csvFile && (
+                    <p className="text-sm text-gray-600 mt-2">
+                      선택된 파일: {csvFile.name}
+                    </p>
+                  )}
+                  <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                    <h4 className="font-medium mb-2">CSV 파일 형식 안내:</h4>
+                    <div className="text-sm text-gray-600 space-y-2">
+                      <p><strong>OX 문제:</strong> question_id, stem, answer, explanation, tags, difficulty, source</p>
+                      <p><strong>사지선다:</strong> question_id, stem, choice1, choice2, choice3, choice4, correct_answer, explanation, tags, difficulty, source</p>
+                      <p>첫 번째 행은 헤더로 사용됩니다.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <Button 
+                  onClick={handleCsvSubmit}
+                  disabled={csvUploadMutation.isPending || !csvFile}
+                  data-testid="button-submit-csv"
+                >
+                  {csvUploadMutation.isPending ? "업로드 중..." : "CSV 파일 업로드"}
+                </Button>
               </TabsContent>
 
               <TabsContent value="bulk" className="space-y-4">

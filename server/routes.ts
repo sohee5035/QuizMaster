@@ -3,6 +3,9 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
 import type { SessionResponse, AnswerResponse, ResultsResponse, QuestionWithChoices } from "@shared/schema";
+import multer from "multer";
+import csv from "csv-parser";
+import { Readable } from "stream";
 
 // Fisher-Yates shuffle algorithm
 function shuffle<T>(array: T[]): T[] {
@@ -13,6 +16,9 @@ function shuffle<T>(array: T[]): T[] {
   }
   return shuffled;
 }
+
+// Configure multer for file upload
+const upload = multer({ storage: multer.memoryStorage() });
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Start a new session and return first question
@@ -315,6 +321,127 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error bulk creating questions:", error);
       res.status(500).json({ message: "일괄 등록에 실패했습니다." });
+    }
+  });
+
+  // 관리자 API - CSV 파일 업로드
+  app.post("/api/admin/questions/csv", upload.single("csv"), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "CSV 파일이 필요합니다." });
+      }
+
+      const results: any[] = [];
+      const csvData: any[] = [];
+
+      // CSV 파일을 스트림으로 처리
+      const readable = new Readable();
+      readable.push(req.file.buffer);
+      readable.push(null);
+
+      readable
+        .pipe(csv())
+        .on("data", (row) => {
+          csvData.push(row);
+        })
+        .on("end", async () => {
+          try {
+            for (const row of csvData) {
+              const questionId = row.question_id || row.questionId;
+              const stem = row.stem;
+              const explanation = row.explanation;
+              const tags = row.tags || null;
+              const difficulty = row.difficulty ? parseInt(row.difficulty) : null;
+              const source = row.source || null;
+
+              if (!questionId || !stem || !explanation) {
+                results.push({ questionId: questionId || "unknown", success: false, error: "필수 필드 누락" });
+                continue;
+              }
+
+              try {
+                // OX 문제인지 사지선다인지 판단
+                const isOX = row.answer && (row.answer.toUpperCase() === "O" || row.answer.toUpperCase() === "X" || 
+                             row.answer === "true" || row.answer === "false");
+                
+                if (isOX) {
+                  // OX 문제 처리
+                  const answer = row.answer.toUpperCase() === "O" || row.answer === "true";
+                  
+                  await storage.createQuestion({
+                    id: questionId,
+                    type: "OX",
+                    stem,
+                    explanation,
+                    tags,
+                    difficulty,
+                    source,
+                    answer,
+                  });
+                } else {
+                  // 사지선다 문제 처리
+                  const choice1 = row.choice1;
+                  const choice2 = row.choice2;
+                  const choice3 = row.choice3;
+                  const choice4 = row.choice4;
+                  const correctAnswer = parseInt(row.correct_answer || row.correctAnswer);
+
+                  if (!choice1 || !choice2 || !choice3 || !choice4 || !correctAnswer) {
+                    results.push({ questionId, success: false, error: "선택지 또는 정답이 누락됨" });
+                    continue;
+                  }
+
+                  // 문제 생성
+                  await storage.createQuestion({
+                    id: questionId,
+                    type: "MCQ",
+                    stem,
+                    explanation,
+                    tags,
+                    difficulty,
+                    source,
+                    answer: null,
+                  });
+
+                  // 선택지 생성
+                  const choices = [choice1, choice2, choice3, choice4];
+                  for (let i = 0; i < choices.length; i++) {
+                    await storage.createChoice({
+                      id: `${questionId}c${i + 1}`,
+                      questionId: questionId,
+                      content: choices[i],
+                      isCorrect: (i + 1) === correctAnswer,
+                    });
+                  }
+                }
+
+                results.push({ questionId, success: true });
+              } catch (error) {
+                results.push({ 
+                  questionId, 
+                  success: false, 
+                  error: error instanceof Error ? error.message : "알 수 없는 오류" 
+                });
+              }
+            }
+
+            res.json({ 
+              message: `CSV 파일 처리 완료. 총 ${csvData.length}개 문제 중 ${results.filter(r => r.success).length}개 성공`,
+              results 
+            });
+          } catch (error) {
+            console.error("Error processing CSV data:", error);
+            res.status(500).json({ message: "CSV 데이터 처리 중 오류가 발생했습니다." });
+          }
+        })
+        .on("error", (error) => {
+          console.error("Error parsing CSV:", error);
+          res.status(500).json({ message: "CSV 파일 파싱 중 오류가 발생했습니다." });
+        });
+
+    } catch (error) {
+      console.error("Error uploading CSV:", error);
+      res.status(500).json({ message: "CSV 업로드에 실패했습니다." });
     }
   });
 
