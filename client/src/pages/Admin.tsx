@@ -81,11 +81,6 @@ export default function Admin() {
   const queryClient = useQueryClient();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // 인증되지 않은 경우 로그인 화면 표시
-  if (!isAuthenticated) {
-    return <AdminLogin onLogin={() => setIsAuthenticated(true)} />;
-  }
-
   // OX 문제 상태
   const [oxForm, setOxForm] = useState({
     questionId: "",
@@ -281,7 +276,10 @@ export default function Admin() {
     });
   };
 
-
+  // 인증되지 않은 경우 로그인 화면 표시
+  if (!isAuthenticated) {
+    return <AdminLogin onLogin={() => setIsAuthenticated(true)} />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
