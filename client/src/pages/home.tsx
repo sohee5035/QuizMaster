@@ -39,7 +39,7 @@ export default function Home({ onStart }: HomeProps) {
             
             <Button
               onClick={() => onStart(10)}
-              className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-4 px-6 rounded-xl transition-colors duration-200 shadow-sm"
+              className="w-full bg-gray-400 hover:bg-gray-500 text-white font-semibold py-4 px-6 rounded-xl transition-colors duration-200 shadow-sm"
               data-testid="button-start-session-random"
             >
               랜덤 10문제 시작
