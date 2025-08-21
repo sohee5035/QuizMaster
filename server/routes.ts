@@ -36,10 +36,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "No questions available" });
       }
 
-      // If questionCount is specified, randomly select that many questions
+      // Always shuffle questions for randomized order
+      questions = shuffle(questions);
+      
+      // If questionCount is specified, select only that many questions
       if (questionCount && questionCount > 0) {
-        const shuffledQuestions = shuffle(questions);
-        questions = shuffledQuestions.slice(0, Math.min(questionCount, questions.length));
+        questions = questions.slice(0, Math.min(questionCount, questions.length));
       }
 
       // Store the question order for this session
