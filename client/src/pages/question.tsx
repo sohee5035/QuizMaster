@@ -45,7 +45,7 @@ export default function Question({ sessionData, onAnswer, onNext, answerResult, 
 
     // 정답인 선택지는 항상 초록색으로 표시
     if (isCorrect) {
-      return "w-full text-left p-4 rounded-lg border border-green-200 bg-green-50";
+      return "w-full text-left p-4 rounded-lg border-2 border-green-400 bg-green-50";
     }
 
     return "w-full text-left p-4 rounded-lg border border-gray-200 opacity-50";
@@ -67,7 +67,7 @@ export default function Question({ sessionData, onAnswer, onNext, answerResult, 
 
     // 정답은 항상 초록색으로 표시
     if (isCorrect) {
-      return "w-full text-left p-4 rounded-lg border border-green-200 bg-green-50";
+      return "w-full text-left p-4 rounded-lg border-2 border-green-400 bg-green-50";
     }
 
     return "w-full text-left p-4 rounded-lg border border-gray-200 opacity-50";
