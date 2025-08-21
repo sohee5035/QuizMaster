@@ -128,7 +128,7 @@ function AppContent() {
           sessionData={sessionData}
           onAnswer={handleAnswer}
           onNext={handleNext}
-          answerResult={answerResult}
+          answerResult={answerResult || undefined}
           isLoading={nextQuestionMutation.isPending}
         />
       )}

@@ -196,7 +196,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             questionWithChoices = { ...question, choices };
           }
 
-          const userAnswer = response.choiceId || response.selectedBoolean;
+          const userAnswer = response.choiceId || response.selectedBoolean || "";
           questionResults.push({
             question: questionWithChoices,
             userAnswer,
