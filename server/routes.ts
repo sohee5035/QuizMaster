@@ -24,6 +24,24 @@ const upload = multer({ storage: multer.memoryStorage() });
 const sessionQuestionOrders: Map<string, string[]> = new Map();
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Admin stats endpoint (before page view middleware)
+  app.get("/api/admin/stats", async (req, res) => {
+    try {
+      const [todayViews, totalViews] = await Promise.all([
+        storage.getTodayPageViews(),
+        storage.getTotalPageViews()
+      ]);
+      
+      res.json({
+        todayViews,
+        totalViews
+      });
+    } catch (error) {
+      console.error('Stats error:', error);
+      res.status(500).json({ message: "통계 조회 중 오류가 발생했습니다." });
+    }
+  });
+
   // Start a new session and return first question
   app.post("/api/session/start", async (req, res) => {
     try {
@@ -388,10 +406,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       readable.push(null);
 
       readable
-        .pipe(csv({ 
-          skipEmptyLines: true,
-          trim: true 
-        }))
+        .pipe(csv())
         .on("data", (row) => {
           csvData.push(row);
         })
@@ -613,6 +628,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error downloading CSV:", error);
       res.status(500).json({ message: "CSV 다운로드에 실패했습니다." });
     }
+  });
+
+  // Page view tracking middleware (after all API routes)
+  app.use(async (req, res, next) => {
+    // 정적 파일과 API 경로는 제외
+    if (!req.path.startsWith('/api') && !req.path.includes('.')) {
+      try {
+        await storage.recordPageView({
+          ipAddress: req.ip || req.connection.remoteAddress || 'unknown',
+          userAgent: req.get('User-Agent') || '',
+          page: req.path
+        });
+      } catch (error) {
+        console.error('페이지 조회수 기록 실패:', error);
+      }
+    }
+    next();
   });
 
   const httpServer = createServer(app);

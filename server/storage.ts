@@ -1,7 +1,7 @@
-import { type Question, type Choice, type Session, type Response, type InsertQuestion, type InsertChoice, type InsertSession, type InsertResponse } from "@shared/schema";
+import { type Question, type Choice, type Session, type Response, type PageView, type InsertQuestion, type InsertChoice, type InsertSession, type InsertResponse, type InsertPageView } from "@shared/schema";
 import { db } from "./db";
-import { questions, choices, sessions, responses } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { questions, choices, sessions, responses, pageViews } from "@shared/schema";
+import { eq, sql, gte } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -20,6 +20,11 @@ export interface IStorage {
   // Responses
   createResponse(response: InsertResponse): Promise<Response>;
   getResponsesForSession(sessionId: string): Promise<Response[]>;
+  
+  // Page Views
+  recordPageView(pageView: InsertPageView): Promise<PageView>;
+  getTodayPageViews(): Promise<number>;
+  getTotalPageViews(): Promise<number>;
   
   // Utility
   clearAllData(): Promise<void>;
@@ -143,12 +148,42 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(responses).where(eq(responses.sessionId, sessionId));
   }
 
+  async recordPageView(insertPageView: InsertPageView): Promise<PageView> {
+    const id = randomUUID();
+    const [pageView] = await db
+      .insert(pageViews)
+      .values({ ...insertPageView, id })
+      .returning();
+    return pageView;
+  }
+
+  async getTodayPageViews(): Promise<number> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const result = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(pageViews)
+      .where(gte(pageViews.visitedAt, today));
+    
+    return Number(result[0]?.count || 0);
+  }
+
+  async getTotalPageViews(): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(pageViews);
+    
+    return Number(result[0]?.count || 0);
+  }
+
   async clearAllData(): Promise<void> {
     // 외래키 제약으로 인해 순서대로 삭제
     await db.delete(responses);
     await db.delete(sessions);
     await db.delete(choices);
     await db.delete(questions);
+    await db.delete(pageViews);
   }
 }
 
@@ -157,12 +192,14 @@ export class MemStorage implements IStorage {
   private choices: Map<string, Choice>;
   private sessions: Map<string, Session>;
   private responses: Map<string, Response>;
+  private pageViews: Map<string, PageView>;
 
   constructor() {
     this.questions = new Map();
     this.choices = new Map();
     this.sessions = new Map();
     this.responses = new Map();
+    this.pageViews = new Map();
     
     this.seedData();
   }
@@ -284,11 +321,37 @@ export class MemStorage implements IStorage {
     );
   }
 
+  async recordPageView(insertPageView: InsertPageView): Promise<PageView> {
+    const id = randomUUID();
+    const pageView: PageView = {
+      ...insertPageView,
+      id,
+      userAgent: insertPageView.userAgent || null,
+      visitedAt: new Date(),
+    };
+    this.pageViews.set(id, pageView);
+    return pageView;
+  }
+
+  async getTodayPageViews(): Promise<number> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    return Array.from(this.pageViews.values()).filter(
+      pv => pv.visitedAt && pv.visitedAt >= today
+    ).length;
+  }
+
+  async getTotalPageViews(): Promise<number> {
+    return this.pageViews.size;
+  }
+
   async clearAllData(): Promise<void> {
     this.responses.clear();
     this.sessions.clear();
     this.choices.clear();
     this.questions.clear();
+    this.pageViews.clear();
   }
 }
 

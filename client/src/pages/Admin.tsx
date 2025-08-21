@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,6 +9,76 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { Eye, Calendar, BarChart3 } from "lucide-react";
+
+// 조회수 통계 컴포넌트
+function StatsCard() {
+  const { data: stats, isLoading } = useQuery<{todayViews: number, totalViews: number}>({
+    queryKey: ['/api/admin/stats'],
+    refetchInterval: 30000, // 30초마다 자동 새로고침
+  });
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5" />
+            웹사이트 조회수
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8 text-gray-500">
+            조회수 로딩 중...
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const { todayViews = 0, totalViews = 0 } = stats || {};
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <BarChart3 className="h-5 w-5" />
+          웹사이트 조회수
+        </CardTitle>
+        <CardDescription>실시간 방문자 통계</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg border">
+            <div className="flex items-center gap-2 mb-2">
+              <Calendar className="h-4 w-4 text-blue-600" />
+              <span className="text-sm font-medium text-blue-600">오늘</span>
+            </div>
+            <p className="text-2xl font-bold text-blue-700 dark:text-blue-300" data-testid="text-today-views">
+              {todayViews.toLocaleString()}
+            </p>
+            <p className="text-xs text-blue-600">조회수</p>
+          </div>
+          
+          <div className="bg-green-50 dark:bg-green-950 p-4 rounded-lg border">
+            <div className="flex items-center gap-2 mb-2">
+              <Eye className="h-4 w-4 text-green-600" />
+              <span className="text-sm font-medium text-green-600">총합</span>
+            </div>
+            <p className="text-2xl font-bold text-green-700 dark:text-green-300" data-testid="text-total-views">
+              {totalViews.toLocaleString()}
+            </p>
+            <p className="text-xs text-green-600">누적 조회수</p>
+          </div>
+        </div>
+        
+        <div className="text-xs text-gray-500 text-center">
+          * 30초마다 자동 업데이트됩니다
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 // 관리자 로그인 컴포넌트
 function AdminLogin({ onLogin }: { onLogin: () => void }) {
@@ -352,12 +422,17 @@ export default function Admin() {
             <CardDescription>새로운 문제를 등록하거나 일괄 등록할 수 있습니다.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="ox" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
+            <Tabs defaultValue="stats" className="w-full">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="stats">조회수 통계</TabsTrigger>
                 <TabsTrigger value="ox">OX 문제</TabsTrigger>
                 <TabsTrigger value="mcq">사지선다</TabsTrigger>
                 <TabsTrigger value="csv">CSV 업로드</TabsTrigger>
               </TabsList>
+
+              <TabsContent value="stats" className="space-y-4">
+                <StatsCard />
+              </TabsContent>
 
               <TabsContent value="ox" className="space-y-4">
                 <form onSubmit={handleOxSubmit} className="space-y-4">
