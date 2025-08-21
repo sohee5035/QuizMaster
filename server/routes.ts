@@ -219,6 +219,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 관리자 API - 문제 등록
+  app.post("/api/admin/questions", async (req, res) => {
+    try {
+      const { type, questionId, stem, explanation, tags, difficulty, source, answer, choices } = req.body;
+
+      if (!type || !questionId || !stem || !explanation) {
+        return res.status(400).json({ message: "필수 필드가 누락되었습니다." });
+      }
+
+      // 문제 생성
+      const question = await storage.createQuestion({
+        id: questionId,
+        type,
+        stem,
+        explanation,
+        tags: tags || null,
+        difficulty: difficulty || null,
+        source: source || null,
+        answer: type === "OX" ? answer : null,
+      });
+
+      // 사지선다인 경우 선택지 생성
+      if (type === "MCQ" && choices && Array.isArray(choices)) {
+        for (let i = 0; i < choices.length; i++) {
+          const choice = choices[i];
+          await storage.createChoice({
+            id: `${questionId}c${i + 1}`,
+            questionId: questionId,
+            content: choice.content,
+            isCorrect: choice.isCorrect,
+          });
+        }
+      }
+
+      res.json({ message: "문제가 성공적으로 등록되었습니다.", question });
+    } catch (error) {
+      console.error("Error creating question:", error);
+      res.status(500).json({ message: "문제 등록에 실패했습니다." });
+    }
+  });
+
+  // 관리자 API - 일괄 문제 등록
+  app.post("/api/admin/questions/bulk", async (req, res) => {
+    try {
+      const { questions } = req.body;
+
+      if (!questions || !Array.isArray(questions)) {
+        return res.status(400).json({ message: "문제 목록이 필요합니다." });
+      }
+
+      const results = [];
+
+      for (const questionData of questions) {
+        const { type, questionId, stem, explanation, tags, difficulty, source, answer, choices } = questionData;
+
+        if (!type || !questionId || !stem || !explanation) {
+          results.push({ questionId, success: false, error: "필수 필드 누락" });
+          continue;
+        }
+
+        try {
+          // 문제 생성
+          const question = await storage.createQuestion({
+            id: questionId,
+            type,
+            stem,
+            explanation,
+            tags: tags || null,
+            difficulty: difficulty || null,
+            source: source || null,
+            answer: type === "OX" ? answer : null,
+          });
+
+          // 사지선다인 경우 선택지 생성
+          if (type === "MCQ" && choices && Array.isArray(choices)) {
+            for (let i = 0; i < choices.length; i++) {
+              const choice = choices[i];
+              await storage.createChoice({
+                id: `${questionId}c${i + 1}`,
+                questionId: questionId,
+                content: choice.content,
+                isCorrect: choice.isCorrect,
+              });
+            }
+          }
+
+          results.push({ questionId, success: true });
+        } catch (error) {
+          results.push({ questionId, success: false, error: error instanceof Error ? error.message : "알 수 없는 오류" });
+        }
+      }
+
+      res.json({ message: "일괄 등록이 완료되었습니다.", results });
+    } catch (error) {
+      console.error("Error bulk creating questions:", error);
+      res.status(500).json({ message: "일괄 등록에 실패했습니다." });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

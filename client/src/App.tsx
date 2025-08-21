@@ -9,9 +9,10 @@ import { api } from "./lib/api";
 import Home from "./pages/home";
 import Question from "./pages/question";
 import Results from "./pages/results";
+import Admin from "./pages/Admin";
 import type { SessionResponse, AnswerResponse, ResultsResponse } from "@shared/schema";
 
-type AppState = "home" | "question" | "results";
+type AppState = "home" | "question" | "results" | "admin";
 
 function AppContent() {
   const [appState, setAppState] = useState<AppState>("home");
@@ -117,8 +118,37 @@ function AppContent() {
     setAppState("home");
   };
 
+  const handleAdmin = () => {
+    setAppState("admin");
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* 상단 네비게이션 */}
+      <nav className="bg-white shadow-sm border-b">
+        <div className="max-w-4xl mx-auto px-4 py-3">
+          <div className="flex justify-between items-center">
+            <h1 className="text-xl font-bold">KB 외환 마스터</h1>
+            <div className="space-x-4">
+              <button
+                onClick={handleHome}
+                className="text-blue-600 hover:text-blue-800"
+                data-testid="nav-home"
+              >
+                홈
+              </button>
+              <button
+                onClick={handleAdmin}
+                className="text-gray-600 hover:text-gray-800"
+                data-testid="nav-admin"
+              >
+                관리자
+              </button>
+            </div>
+          </div>
+        </div>
+      </nav>
+
       {appState === "home" && (
         <Home onStart={handleStart} />
       )}
@@ -139,6 +169,10 @@ function AppContent() {
           onRestart={handleRestart}
           onHome={handleHome}
         />
+      )}
+
+      {appState === "admin" && (
+        <Admin />
       )}
     </div>
   );
