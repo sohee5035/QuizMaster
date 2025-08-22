@@ -57,6 +57,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Detailed analytics endpoint
+  app.get("/api/admin/analytics", async (req, res) => {
+    try {
+      // Get detailed page view analytics
+      const pageViewsQuery = `
+        SELECT 
+          DATE(visited_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul') as visit_date,
+          COUNT(DISTINCT ip_address) as unique_visitors,
+          COUNT(*) as total_views
+        FROM page_views 
+        GROUP BY DATE(visited_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Seoul')
+        ORDER BY visit_date DESC
+        LIMIT 30
+      `;
+      
+      // Get session and response analytics
+      const sessionQuery = `
+        SELECT 
+          COUNT(DISTINCT sessions.id) as total_sessions,
+          COUNT(DISTINCT responses.session_id) as sessions_with_responses,
+          COUNT(responses.id) as total_answers,
+          COUNT(CASE WHEN responses.is_correct = true THEN 1 END) as correct_answers
+        FROM sessions 
+        LEFT JOIN responses ON sessions.id = responses.session_id
+      `;
+
+      const overallQuery = `
+        SELECT 
+          (SELECT COUNT(DISTINCT ip_address) FROM page_views) as total_unique_visitors,
+          (SELECT COUNT(*) FROM page_views) as total_page_views,
+          (SELECT COUNT(*) FROM questions) as total_questions,
+          (SELECT MIN(visited_at) FROM page_views) as first_visit,
+          (SELECT MAX(visited_at) FROM page_views) as last_visit
+      `;
+
+      // Execute queries using storage interface or direct db access
+      // For now, return basic stats that we can get from storage
+      const basicStats = {
+        todayViews: await storage.getTodayPageViews(),
+        totalViews: await storage.getTotalPageViews(),
+        todayUniqueVisitors: await storage.getTodayUniqueVisitors(),
+        totalUniqueVisitors: await storage.getTotalUniqueVisitors()
+      };
+
+      res.json({
+        ...basicStats,
+        message: "상세 분석 데이터는 데이터베이스 직접 쿼리가 필요합니다."
+      });
+    } catch (error) {
+      console.error('Analytics error:', error);
+      res.status(500).json({ message: "분석 데이터 조회 중 오류가 발생했습니다." });
+    }
+  });
+
   // Start a new session and return first question
   app.post("/api/session/start", async (req, res) => {
     try {
