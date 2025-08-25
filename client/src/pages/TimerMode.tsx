@@ -54,16 +54,16 @@ export default function TimerMode({ questionData, onAnswer, onNext, onSkip }: Ti
 
   // Reset timers when question changes
   useEffect(() => {
-    if (!questionData.isAnswered) {
-      setTimeLeft(10);
-      setShowExplanation(false);
-      setExplanationTimeLeft(5);
-    }
-  }, [questionData.currentQuestion, questionData.isAnswered]);
+    // Reset all states when moving to a new question
+    setTimeLeft(10);
+    setShowExplanation(false);
+    setExplanationTimeLeft(5);
+  }, [questionData.currentQuestion]);
 
   // Show explanation when question is answered
   useEffect(() => {
     if (questionData.isAnswered && !showExplanation) {
+      // Immediately show explanation for 5 seconds
       setShowExplanation(true);
       setExplanationTimeLeft(5);
     }
