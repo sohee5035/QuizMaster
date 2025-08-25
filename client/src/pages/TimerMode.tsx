@@ -232,15 +232,13 @@ export default function TimerMode({ questionData, onAnswer, onNext, onSkip }: Ti
 
       {/* Manual Next Button (for testing) */}
       {showExplanation && (
-        <div className="text-center">
-          <Button
-            onClick={onNext}
-            className="bg-blue-500 hover:bg-blue-600 text-white"
-            data-testid="button-manual-next"
-          >
-            다음 문제로 ({explanationTimeLeft}초 후 자동 진행)
-          </Button>
-        </div>
+        <Button
+          onClick={onNext}
+          className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-4 px-6 rounded-xl transition-colors duration-200 shadow-sm"
+          data-testid="button-manual-next"
+        >
+          다음 문제로 ({explanationTimeLeft}초 후 자동 진행)
+        </Button>
       )}
     </div>
   );
