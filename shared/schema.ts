@@ -91,3 +91,21 @@ export type ResultsResponse = {
     isCorrect: boolean;
   }>;
 };
+
+// Timer mode types
+export type TimerQuestionData = {
+  sessionId: string;
+  question: QuestionWithChoices;
+  currentQuestion: number;
+  totalQuestions: number;
+  isAnswered: boolean;
+  userAnswer?: string | boolean;
+  isCorrect?: boolean;
+  explanation?: string | null;
+};
+
+export type TimerResultsData = {
+  totalQuestions: number;
+  correctAnswers: number;
+  incorrectQuestions: TimerQuestionData[];
+};

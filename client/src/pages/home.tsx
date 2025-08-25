@@ -4,9 +4,10 @@ import mascotImage from "@assets/Adobe Express 2025-08-21 12시 40분 8초_17557
 
 interface HomeProps {
   onStart: (questionCount?: number, difficulty?: number) => void;
+  onStartTimer: () => void;
 }
 
-export default function Home({ onStart }: HomeProps) {
+export default function Home({ onStart, onStartTimer }: HomeProps) {
   return (
     <div className="container mx-auto max-w-2xl p-6">
       <Card className="mt-8 shadow-sm">
@@ -42,6 +43,14 @@ export default function Home({ onStart }: HomeProps) {
               data-testid="button-start-session-all"
             >
               전체 문제풀이 시작
+            </Button>
+            
+            <Button
+              onClick={onStartTimer}
+              className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-4 px-6 rounded-xl transition-colors duration-200 shadow-sm animate-pulse"
+              data-testid="button-start-timer-mode"
+            >
+              ⚡ 타이머 모드 (10초 제한) ⚡
             </Button>
             
             <Button

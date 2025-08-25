@@ -10,20 +10,25 @@ import Home from "./pages/home";
 import Question from "./pages/question";
 import Results from "./pages/results";
 import Admin from "./pages/Admin";
-import type { SessionResponse, AnswerResponse, ResultsResponse } from "@shared/schema";
+import TimerMode from "./pages/TimerMode.tsx";
+import TimerResults from "./pages/TimerResults.tsx";
+import type { SessionResponse, AnswerResponse, ResultsResponse, TimerQuestionData, TimerResultsData } from "@shared/schema";
 
-type AppState = "home" | "question" | "results" | "admin";
+type AppState = "home" | "question" | "results" | "admin" | "timer" | "timer-results";
 
 function AppContent() {
   const [appState, setAppState] = useState<AppState>("home");
   const [sessionData, setSessionData] = useState<SessionResponse | null>(null);
   const [answerResult, setAnswerResult] = useState<AnswerResponse | null>(null);
   const [results, setResults] = useState<ResultsResponse | null>(null);
+  const [timerQuestions, setTimerQuestions] = useState<TimerQuestionData[]>([]);
+  const [currentTimerIndex, setCurrentTimerIndex] = useState(0);
+  const [timerResults, setTimerResults] = useState<TimerResultsData | null>(null);
   const { toast } = useToast();
 
   const startSessionMutation = useMutation({
-    mutationFn: ({ questionCount, difficulty }: { questionCount?: number; difficulty?: number }) => 
-      api.startSession("study", questionCount, difficulty),
+    mutationFn: ({ questionCount, difficulty, mode }: { questionCount?: number; difficulty?: number; mode?: string }) => 
+      api.startSession(mode || "study", questionCount, difficulty),
     onSuccess: (data) => {
       setSessionData(data);
       setAnswerResult(null);
@@ -36,6 +41,31 @@ function AppContent() {
         variant: "destructive",
       });
       console.error("Failed to start session:", error);
+    },
+  });
+
+  const startTimerMutation = useMutation({
+    mutationFn: () => api.startSession("timer", 100), // 100문제 고정
+    onSuccess: (data) => {
+      // 첫 번째 문제로 타이머 세션 시작
+      const initialQuestion: TimerQuestionData = {
+        sessionId: data.sessionId,
+        question: data.question,
+        currentQuestion: data.currentQuestion,
+        totalQuestions: data.totalQuestions,
+        isAnswered: false,
+      };
+      setTimerQuestions([initialQuestion]);
+      setCurrentTimerIndex(0);
+      setAppState("timer");
+    },
+    onError: (error) => {
+      toast({
+        title: "오류",
+        description: "타이머 모드를 시작할 수 없습니다.",
+        variant: "destructive",
+      });
+      console.error("Failed to start timer mode:", error);
     },
   });
 
@@ -97,6 +127,92 @@ function AppContent() {
     startSessionMutation.mutate({ questionCount, difficulty });
   };
 
+  const handleStartTimer = () => {
+    startTimerMutation.mutate();
+  };
+
+  const handleTimerAnswer = async (answer: { selectedChoiceId?: string; selectedBoolean?: boolean }) => {
+    const currentQuestion = timerQuestions[currentTimerIndex];
+    if (!currentQuestion || currentQuestion.isAnswered) return;
+
+    try {
+      // Submit answer
+      const result = await api.submitAnswer(currentQuestion.sessionId, answer);
+      
+      // Update current question with answer
+      const updatedQuestions = [...timerQuestions];
+      updatedQuestions[currentTimerIndex] = {
+        ...currentQuestion,
+        isAnswered: true,
+        userAnswer: answer.selectedChoiceId || answer.selectedBoolean,
+        isCorrect: result.isCorrect,
+        explanation: result.explanation,
+      };
+      setTimerQuestions(updatedQuestions);
+      
+    } catch (error) {
+      console.error("Failed to submit timer answer:", error);
+    }
+  };
+
+  const handleTimerNext = async () => {
+    const currentQuestion = timerQuestions[currentTimerIndex];
+    if (!currentQuestion) return;
+
+    try {
+      // Check if this is the last question
+      if (currentTimerIndex + 1 >= currentQuestion.totalQuestions) {
+        // Finish session and show results
+        const results = await api.finishSession(currentQuestion.sessionId);
+        
+        // Prepare timer results with incorrect questions only
+        const incorrectQuestions = timerQuestions.filter(q => q.isAnswered && !q.isCorrect);
+        const correctCount = timerQuestions.filter(q => q.isAnswered && q.isCorrect).length;
+        
+        setTimerResults({
+          totalQuestions: currentQuestion.totalQuestions,
+          correctAnswers: correctCount,
+          incorrectQuestions,
+        });
+        setAppState("timer-results");
+        return;
+      }
+
+      // Get next question
+      const nextData = await api.getNextQuestion(currentQuestion.sessionId);
+      
+      // Add next question to the list
+      const nextQuestion: TimerQuestionData = {
+        sessionId: nextData.sessionId,
+        question: nextData.question,
+        currentQuestion: nextData.currentQuestion,
+        totalQuestions: nextData.totalQuestions,
+        isAnswered: false,
+      };
+      
+      setTimerQuestions(prev => [...prev, nextQuestion]);
+      setCurrentTimerIndex(prev => prev + 1);
+      
+    } catch (error) {
+      console.error("Failed to get next timer question:", error);
+    }
+  };
+
+  const handleTimerSkip = () => {
+    // Skip current question (mark as unanswered/incorrect)
+    const currentQuestion = timerQuestions[currentTimerIndex];
+    if (!currentQuestion || currentQuestion.isAnswered) return;
+
+    const updatedQuestions = [...timerQuestions];
+    updatedQuestions[currentTimerIndex] = {
+      ...currentQuestion,
+      isAnswered: true,
+      isCorrect: false,
+      explanation: "시간 초과로 건너뛴 문제입니다.",
+    };
+    setTimerQuestions(updatedQuestions);
+  };
+
   const handleAnswer = (answer: { selectedChoiceId?: string; selectedBoolean?: boolean }) => {
     submitAnswerMutation.mutate(answer);
   };
@@ -109,6 +225,9 @@ function AppContent() {
     setSessionData(null);
     setAnswerResult(null);
     setResults(null);
+    setTimerQuestions([]);
+    setCurrentTimerIndex(0);
+    setTimerResults(null);
     setAppState("home");
   };
 
@@ -116,6 +235,9 @@ function AppContent() {
     setSessionData(null);
     setAnswerResult(null);
     setResults(null);
+    setTimerQuestions([]);
+    setCurrentTimerIndex(0);
+    setTimerResults(null);
     setAppState("home");
   };
 
@@ -151,7 +273,7 @@ function AppContent() {
       </nav>
 
       {appState === "home" && (
-        <Home onStart={handleStart} />
+        <Home onStart={handleStart} onStartTimer={handleStartTimer} />
       )}
       
       {appState === "question" && sessionData && (
@@ -167,6 +289,23 @@ function AppContent() {
       {appState === "results" && results && (
         <Results
           results={results}
+          onRestart={handleRestart}
+          onHome={handleHome}
+        />
+      )}
+
+      {appState === "timer" && timerQuestions.length > 0 && (
+        <TimerMode
+          questionData={timerQuestions[currentTimerIndex]}
+          onAnswer={handleTimerAnswer}
+          onNext={handleTimerNext}
+          onSkip={handleTimerSkip}
+        />
+      )}
+
+      {appState === "timer-results" && timerResults && (
+        <TimerResults
+          results={timerResults}
           onRestart={handleRestart}
           onHome={handleHome}
         />
