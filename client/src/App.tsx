@@ -170,13 +170,12 @@ function AppContent() {
         // Finish session and show results
         const results = await api.finishSession(currentQuestion.sessionId);
         
-        // Prepare timer results with incorrect questions only
+        // Use server results for accuracy, but filter client questions for incorrect list
         const incorrectQuestions = timerQuestions.filter(q => q.isAnswered && !q.isCorrect);
-        const correctCount = timerQuestions.filter(q => q.isAnswered && q.isCorrect).length;
         
         setTimerResults({
-          totalQuestions: currentQuestion.totalQuestions,
-          correctAnswers: correctCount,
+          totalQuestions: results.totalQuestions,
+          correctAnswers: results.correctAnswers,
           incorrectQuestions,
         });
         setAppState("timer-results");
