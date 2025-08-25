@@ -327,7 +327,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.endSession(sessionId);
 
       const responses = await storage.getResponsesForSession(sessionId);
-      const questions = await storage.getQuestions();
+      
+      // Get the actual number of questions for this session
+      const sessionQuestionOrder = sessionQuestionOrders.get(sessionId);
+      const actualTotalQuestions = sessionQuestionOrder ? sessionQuestionOrder.length : responses.length;
 
       const correctAnswers = responses.filter(r => r.isCorrect).length;
       const incorrectAnswers = responses.length - correctAnswers;
@@ -352,7 +355,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const results: ResultsResponse = {
-        totalQuestions: questions.length,
+        totalQuestions: actualTotalQuestions,
         correctAnswers,
         incorrectAnswers,
         questions: questionResults,
