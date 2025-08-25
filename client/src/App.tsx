@@ -198,11 +198,12 @@ function AppContent() {
     }
   };
 
-  const handleTimerSkip = () => {
-    // Skip current question (mark as unanswered/incorrect)
+  const handleTimerSkip = async () => {
+    // Skip current question (mark as unanswered/incorrect) and go to next
     const currentQuestion = timerQuestions[currentTimerIndex];
     if (!currentQuestion || currentQuestion.isAnswered) return;
 
+    // Mark current question as incorrect
     const updatedQuestions = [...timerQuestions];
     updatedQuestions[currentTimerIndex] = {
       ...currentQuestion,
@@ -211,6 +212,11 @@ function AppContent() {
       explanation: "시간 초과로 건너뛴 문제입니다.",
     };
     setTimerQuestions(updatedQuestions);
+
+    // Automatically go to next question after marking as skipped
+    setTimeout(() => {
+      handleTimerNext();
+    }, 100); // Small delay to ensure state is updated
   };
 
   const handleAnswer = (answer: { selectedChoiceId?: string; selectedBoolean?: boolean }) => {

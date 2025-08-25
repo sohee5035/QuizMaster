@@ -124,20 +124,6 @@ export default function TimerMode({ questionData, onAnswer, onNext, onSkip }: Ti
 
   return (
     <div className="container mx-auto max-w-2xl p-6">
-      {/* Fixed Timer - Top Right */}
-      <div className="fixed top-4 right-4 z-50 bg-white shadow-lg rounded-lg px-4 py-2 border-2 border-gray-200">
-        {showExplanation ? (
-          <div className="flex items-center space-x-2">
-            <span className="text-blue-600 font-bold text-xl">해설</span>
-            <span className="text-blue-500 font-bold text-2xl">{explanationTimeLeft}</span>
-          </div>
-        ) : (
-          <div className="flex items-center space-x-2">
-            <span className="text-gray-600 font-semibold">남은 시간</span>
-            <span className={`font-bold text-3xl ${timerColor} animate-pulse`}>{timeLeft}</span>
-          </div>
-        )}
-      </div>
 
       {/* Progress Bar */}
       <Card className="mb-6 shadow-sm">
@@ -155,10 +141,24 @@ export default function TimerMode({ questionData, onAnswer, onNext, onSkip }: Ti
       {/* Question */}
       <Card className="mb-6 shadow-sm">
         <CardContent className="p-6">
-          <div className="mb-4">
+          <div className="flex justify-between items-center mb-4">
             <span className="inline-block px-2 py-1 text-xs font-semibold text-gray-600 bg-gray-100 rounded">
               {questionData.question.type === "MCQ" ? "객관식" : "OX"}
             </span>
+            {/* Timer inside question box */}
+            <div className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+              {showExplanation ? (
+                <div className="flex items-center space-x-2">
+                  <span className="text-blue-600 font-bold text-sm">해설</span>
+                  <span className="text-blue-500 font-bold text-lg">{explanationTimeLeft}</span>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <span className="text-gray-600 font-medium text-sm">남은시간</span>
+                  <span className={`font-bold text-xl ${timerColor}`}>{timeLeft}</span>
+                </div>
+              )}
+            </div>
           </div>
           <h2 className="text-lg font-semibold text-gray-900 mb-4 leading-relaxed">
             {questionData.question.stem}
