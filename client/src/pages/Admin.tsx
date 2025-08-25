@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Eye, Calendar, BarChart3 } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 
 // 조회수 통계 컴포넌트
 function StatsCard() {
@@ -46,7 +47,8 @@ function StatsCard() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-gray-500 flex flex-col items-center gap-3">
+            <Spinner size="md" className="text-yellow-500" />
             조회수 로딩 중...
           </div>
         </CardContent>
@@ -128,7 +130,8 @@ function QuestionStatsCard() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-gray-500 flex flex-col items-center gap-3">
+            <Spinner size="md" className="text-purple-500" />
             문제 통계 로딩 중...
           </div>
         </CardContent>

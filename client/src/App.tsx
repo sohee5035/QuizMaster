@@ -5,6 +5,7 @@ import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
+import { LoadingOverlay } from "@/components/ui/spinner";
 import { api } from "./lib/api";
 import Home from "./pages/home";
 import Question from "./pages/question";
@@ -342,6 +343,22 @@ function AppContent() {
       {appState === "home" && (
         <Home onStart={handleStart} onStartTimer={handleStartTimer} onStartDifficult={() => startDifficultMutation.mutate()} />
       )}
+
+      {/* 로딩 오버레이 */}
+      <LoadingOverlay 
+        isLoading={
+          startSessionMutation.isPending || 
+          startDifficultMutation.isPending || 
+          startTimerMutation.isPending
+        } 
+        text={
+          startDifficultMutation.isPending 
+            ? "어려운 문제들을 찾는 중..." 
+            : startTimerMutation.isPending 
+            ? "타이머 모드를 준비하는 중..." 
+            : "문제를 준비하는 중..."
+        }
+      />
       
       {appState === "question" && sessionData && (
         <Question

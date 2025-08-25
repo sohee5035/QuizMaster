@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle, XCircle } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 import type { SessionResponse, AnswerResponse, QuestionWithChoices } from "@shared/schema";
 
 interface QuestionProps {
@@ -218,10 +219,11 @@ export default function Question({ sessionData, onAnswer, onNext, answerResult, 
           <Button
             onClick={onNext}
             disabled={isLoading}
-            className="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-3 px-8 rounded-xl transition-colors duration-200 shadow-sm"
+            className="bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-400 text-white font-semibold py-3 px-8 rounded-xl transition-colors duration-200 shadow-sm flex items-center justify-center gap-2"
             data-testid="button-next-question"
           >
-            {isLoading ? "로딩 중..." : "다음 문제"}
+            {isLoading && <Spinner size="sm" className="text-white" />}
+            {isLoading ? "다음 문제 준비 중..." : "다음 문제"}
           </Button>
         </div>
       )}
