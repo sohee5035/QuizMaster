@@ -45,6 +45,44 @@ function AppContent() {
     },
   });
 
+  // 어려운 문제 세션 시작
+  const startDifficultMutation = useMutation({
+    mutationFn: () => fetch("/api/questions/difficult-top20").then(res => res.json()),
+    onSuccess: async (data: { questions: any[]; count: number }) => {
+      if (data.questions.length === 0) {
+        toast({
+          title: "알림",
+          description: "아직 충분한 데이터가 없습니다. 사람들이 더 많은 문제를 풀면 통계가 생성됩니다.",
+        });
+        return;
+      }
+
+      // 특별 세션 시작 (어려운 문제들로)
+      try {
+        const sessionData = await api.startSession("difficult", data.count);
+        setSessionData(sessionData);
+        setAnswerResult(null);
+        setAppState("question");
+        
+        toast({
+          title: "어려운 문제 도전!",
+          description: `사람들이 가장 많이 틀린 ${data.count}개 문제로 도전합니다! 🔥`,
+        });
+      } catch (error) {
+        console.error("Failed to start difficult session:", error);
+        throw error;
+      }
+    },
+    onError: (error) => {
+      toast({
+        title: "오류",
+        description: "어려운 문제 모드를 시작할 수 없습니다.",
+        variant: "destructive",
+      });
+      console.error("Failed to start difficult mode:", error);
+    },
+  });
+
   const startTimerMutation = useMutation({
     mutationFn: (questionCount: number) => api.startSession("timer", questionCount),
     onSuccess: (data) => {
@@ -302,7 +340,7 @@ function AppContent() {
       </nav>
 
       {appState === "home" && (
-        <Home onStart={handleStart} onStartTimer={handleStartTimer} />
+        <Home onStart={handleStart} onStartTimer={handleStartTimer} onStartDifficult={() => startDifficultMutation.mutate()} />
       )}
       
       {appState === "question" && sessionData && (

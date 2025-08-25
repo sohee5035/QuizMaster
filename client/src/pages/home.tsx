@@ -5,9 +5,10 @@ import mascotImage from "@assets/Adobe Express 2025-08-21 12시 40분 8초_17557
 interface HomeProps {
   onStart: (questionCount?: number, difficulty?: number) => void;
   onStartTimer: () => void;
+  onStartDifficult: () => void;
 }
 
-export default function Home({ onStart, onStartTimer }: HomeProps) {
+export default function Home({ onStart, onStartTimer, onStartDifficult }: HomeProps) {
   return (
     <div className="container mx-auto max-w-2xl p-6">
       <Card className="mt-8 shadow-sm">
@@ -52,6 +53,14 @@ export default function Home({ onStart, onStartTimer }: HomeProps) {
               data-testid="button-start-timer-mode"
             >
               ⚡ 타이머 모드 (10초 제한) ⚡
+            </Button>
+            
+            <Button
+              onClick={onStartDifficult}
+              className="w-full bg-purple-500 hover:bg-purple-600 text-white font-semibold py-4 px-6 rounded-xl transition-colors duration-200 shadow-sm"
+              data-testid="button-start-difficult"
+            >
+              🤔 남들은 뭘 많이 틀렸을까? (TOP 20)
             </Button>
             
             <Button

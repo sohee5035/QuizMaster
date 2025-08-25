@@ -90,6 +90,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 어려운 문제 TOP 20 가져오기
+  app.get("/api/questions/difficult-top20", async (req, res) => {
+    try {
+      const questions = await storage.getQuestions();
+      const questionStats = [];
+
+      for (const question of questions) {
+        const responses = await storage.getResponsesForQuestion(question.id);
+        const totalAttempts = responses.length;
+        
+        // 최소 3번 이상 시도된 문제만 포함
+        if (totalAttempts >= 3) {
+          const correctAttempts = responses.filter(r => r.isCorrect).length;
+          const accuracy = (correctAttempts / totalAttempts) * 100;
+
+          questionStats.push({
+            question,
+            accuracy,
+            totalAttempts,
+          });
+        }
+      }
+
+      // 정답률 낮은 순으로 정렬하고 상위 20개만 선택
+      questionStats.sort((a, b) => a.accuracy - b.accuracy);
+      const difficultQuestions = questionStats.slice(0, 20).map(stat => stat.question);
+
+      res.json({ questions: difficultQuestions, count: difficultQuestions.length });
+    } catch (error) {
+      console.error('Difficult questions error:', error);
+      res.status(500).json({ message: "어려운 문제 조회 중 오류가 발생했습니다." });
+    }
+  });
+
   // Detailed analytics endpoint
   app.get("/api/admin/analytics", async (req, res) => {
     try {
@@ -156,19 +190,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "No questions available" });
       }
 
-      // Filter by difficulty if specified
-      if (difficulty && difficulty >= 1 && difficulty <= 3) {
-        questions = questions.filter(q => q.difficulty === difficulty);
+      // Special handling for difficult mode
+      if (mode === "difficult") {
+        const questionStats = [];
+        
+        for (const question of questions) {
+          const responses = await storage.getResponsesForQuestion(question.id);
+          const totalAttempts = responses.length;
+          
+          // Only include questions with at least 3 attempts
+          if (totalAttempts >= 3) {
+            const correctAttempts = responses.filter(r => r.isCorrect).length;
+            const accuracy = (correctAttempts / totalAttempts) * 100;
+
+            questionStats.push({
+              question,
+              accuracy,
+              totalAttempts,
+            });
+          }
+        }
+
+        // Sort by accuracy (lowest first) and take top 20
+        questionStats.sort((a, b) => a.accuracy - b.accuracy);
+        questions = questionStats.slice(0, 20).map(stat => stat.question);
+
         if (questions.length === 0) {
-          return res.status(404).json({ message: `No questions available for difficulty ${difficulty}` });
+          return res.status(404).json({ message: "Not enough data for difficult questions mode" });
+        }
+      } else {
+        // Filter by difficulty if specified (only for non-difficult modes)
+        if (difficulty && difficulty >= 1 && difficulty <= 3) {
+          questions = questions.filter(q => q.difficulty === difficulty);
+          if (questions.length === 0) {
+            return res.status(404).json({ message: `No questions available for difficulty ${difficulty}` });
+          }
         }
       }
 
       // Always shuffle questions for randomized order
       questions = shuffle(questions);
       
-      // If questionCount is specified, select only that many questions
-      if (questionCount && questionCount > 0) {
+      // If questionCount is specified, select only that many questions (except for difficult mode)
+      if (questionCount && questionCount > 0 && mode !== "difficult") {
         questions = questions.slice(0, Math.min(questionCount, questions.length));
       }
 
