@@ -203,17 +203,39 @@ function AppContent() {
     const currentQuestion = timerQuestions[currentTimerIndex];
     if (!currentQuestion || currentQuestion.isAnswered) return;
 
-    // Mark current question as incorrect with explanation
-    const updatedQuestions = [...timerQuestions];
-    updatedQuestions[currentTimerIndex] = {
-      ...currentQuestion,
-      isAnswered: true,
-      isCorrect: false,
-      explanation: "시간 초과로 건너뛴 문제입니다.",
-    };
-    setTimerQuestions(updatedQuestions);
-    
-    // Don't automatically call handleTimerNext here - let the explanation timer handle it
+    try {
+      // Submit empty answer to server to mark as incorrect and move to next question
+      let emptyAnswer;
+      if (currentQuestion.question.type === "MCQ") {
+        emptyAnswer = { selectedChoiceId: "" }; // Empty choice for MCQ
+      } else {
+        emptyAnswer = { selectedBoolean: false }; // Default false for OX
+      }
+      
+      const result = await api.submitAnswer(currentQuestion.sessionId, emptyAnswer);
+      
+      // Mark current question as incorrect with explanation
+      const updatedQuestions = [...timerQuestions];
+      updatedQuestions[currentTimerIndex] = {
+        ...currentQuestion,
+        isAnswered: true,
+        isCorrect: false,
+        explanation: "시간 초과로 건너뛴 문제입니다.",
+      };
+      setTimerQuestions(updatedQuestions);
+      
+    } catch (error) {
+      console.error("Failed to submit skip answer:", error);
+      // Fallback: just mark as answered locally
+      const updatedQuestions = [...timerQuestions];
+      updatedQuestions[currentTimerIndex] = {
+        ...currentQuestion,
+        isAnswered: true,
+        isCorrect: false,
+        explanation: "시간 초과로 건너뛴 문제입니다.",
+      };
+      setTimerQuestions(updatedQuestions);
+    }
   };
 
   const handleAnswer = (answer: { selectedChoiceId?: string; selectedBoolean?: boolean }) => {

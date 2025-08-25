@@ -246,41 +246,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (currentQuestion.type === "MCQ") {
         const { selectedChoiceId } = req.body;
-        if (!selectedChoiceId) {
-          return res.status(400).json({ message: "Selected choice ID is required" });
-        }
-
-        const choices = await storage.getChoicesForQuestion(currentQuestion.id);
-        const selectedChoice = choices.find(c => c.id === selectedChoiceId);
         
-        if (!selectedChoice) {
-          return res.status(400).json({ message: "Invalid choice ID" });
+        // Handle empty answer (time out) - mark as incorrect
+        if (!selectedChoiceId) {
+          isCorrect = false;
+          await storage.createResponse({
+            sessionId,
+            questionId: currentQuestion.id,
+            choiceId: null,
+            selectedBoolean: null,
+            isCorrect: false,
+          });
+        } else {
+          const choices = await storage.getChoicesForQuestion(currentQuestion.id);
+          const selectedChoice = choices.find(c => c.id === selectedChoiceId);
+          
+          if (!selectedChoice) {
+            return res.status(400).json({ message: "Invalid choice ID" });
+          }
+
+          isCorrect = selectedChoice.isCorrect;
+
+          await storage.createResponse({
+            sessionId,
+            questionId: currentQuestion.id,
+            choiceId: selectedChoiceId,
+            selectedBoolean: null,
+            isCorrect,
+          });
         }
-
-        isCorrect = selectedChoice.isCorrect;
-
-        await storage.createResponse({
-          sessionId,
-          questionId: currentQuestion.id,
-          choiceId: selectedChoiceId,
-          selectedBoolean: null,
-          isCorrect,
-        });
       } else if (currentQuestion.type === "OX") {
         const { selectedBoolean } = req.body;
+        
+        // Handle empty answer (time out) - mark as incorrect  
         if (typeof selectedBoolean !== "boolean") {
-          return res.status(400).json({ message: "Selected boolean is required" });
+          isCorrect = false;
+          await storage.createResponse({
+            sessionId,
+            questionId: currentQuestion.id,
+            choiceId: null,
+            selectedBoolean: null,
+            isCorrect: false,
+          });
+        } else {
+          isCorrect = selectedBoolean === currentQuestion.answer;
+
+          await storage.createResponse({
+            sessionId,
+            questionId: currentQuestion.id,
+            choiceId: null,
+            selectedBoolean,
+            isCorrect,
+          });
         }
-
-        isCorrect = selectedBoolean === currentQuestion.answer;
-
-        await storage.createResponse({
-          sessionId,
-          questionId: currentQuestion.id,
-          choiceId: null,
-          selectedBoolean,
-          isCorrect,
-        });
       }
 
       const response: AnswerResponse = {
