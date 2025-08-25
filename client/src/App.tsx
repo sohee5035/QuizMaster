@@ -12,9 +12,10 @@ import Results from "./pages/results";
 import Admin from "./pages/Admin";
 import TimerMode from "./pages/TimerMode.tsx";
 import TimerResults from "./pages/TimerResults.tsx";
+import TimerSetup from "./pages/TimerSetup";
 import type { SessionResponse, AnswerResponse, ResultsResponse, TimerQuestionData, TimerResultsData } from "@shared/schema";
 
-type AppState = "home" | "question" | "results" | "admin" | "timer" | "timer-results";
+type AppState = "home" | "question" | "results" | "admin" | "timer" | "timer-results" | "timer-setup";
 
 function AppContent() {
   const [appState, setAppState] = useState<AppState>("home");
@@ -45,7 +46,7 @@ function AppContent() {
   });
 
   const startTimerMutation = useMutation({
-    mutationFn: () => api.startSession("timer", 100), // 100문제 고정
+    mutationFn: (questionCount: number) => api.startSession("timer", questionCount),
     onSuccess: (data) => {
       // 첫 번째 문제로 타이머 세션 시작
       const initialQuestion: TimerQuestionData = {
@@ -128,7 +129,11 @@ function AppContent() {
   };
 
   const handleStartTimer = () => {
-    startTimerMutation.mutate();
+    setAppState("timer-setup");
+  };
+
+  const handleStartTimerWithCount = (questionCount: number) => {
+    startTimerMutation.mutate(questionCount);
   };
 
   const handleTimerAnswer = async (answer: { selectedChoiceId?: string; selectedBoolean?: boolean }) => {
@@ -316,6 +321,13 @@ function AppContent() {
           results={results}
           onRestart={handleRestart}
           onHome={handleHome}
+        />
+      )}
+
+      {appState === "timer-setup" && (
+        <TimerSetup
+          onStart={handleStartTimerWithCount}
+          onBack={handleHome}
         />
       )}
 
