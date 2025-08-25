@@ -330,6 +330,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Get the actual number of questions for this session
       const sessionQuestionOrder = sessionQuestionOrders.get(sessionId);
+      console.log(`🔍 Session ${sessionId}: questionOrder=${sessionQuestionOrder?.length}, responses=${responses.length}`);
       const actualTotalQuestions = sessionQuestionOrder ? sessionQuestionOrder.length : responses.length;
 
       const correctAnswers = responses.filter(r => r.isCorrect).length;
