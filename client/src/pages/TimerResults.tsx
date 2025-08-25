@@ -19,6 +19,7 @@ export default function TimerResults({ results, onRestart, onHome }: TimerResult
   };
 
   const getScoreMessage = (accuracy: number) => {
+    if (accuracy === 100) return "🎉 완벽해요! 정말 대단합니다! 외환 마스터 확정! 🏆";
     if (accuracy >= 90) return "🏆 최고! 외환 마스터에 한걸음 더 가까워졌어요!";
     if (accuracy >= 80) return "🎉 훌륭해요! 조금만 더 연습하면 완벽해질 거예요!";
     if (accuracy >= 70) return "👍 잘했어요! 틀린 문제들을 다시 확인해보세요.";
