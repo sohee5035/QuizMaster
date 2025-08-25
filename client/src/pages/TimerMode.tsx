@@ -124,8 +124,8 @@ export default function TimerMode({ questionData, onAnswer, onNext, onSkip }: Ti
 
   return (
     <div className="container mx-auto max-w-2xl p-6">
-      {/* Floating Timer */}
-      <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-white shadow-lg rounded-full px-6 py-3 border-2 border-gray-200">
+      {/* Fixed Timer - Top Right */}
+      <div className="fixed top-4 right-4 z-50 bg-white shadow-lg rounded-lg px-4 py-2 border-2 border-gray-200">
         {showExplanation ? (
           <div className="flex items-center space-x-2">
             <span className="text-blue-600 font-bold text-xl">해설</span>
