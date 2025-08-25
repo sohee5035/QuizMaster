@@ -214,13 +214,13 @@ function AppContent() {
       
       const result = await api.submitAnswer(currentQuestion.sessionId, emptyAnswer);
       
-      // Mark current question as incorrect with explanation
+      // Mark current question as incorrect with actual explanation from server
       const updatedQuestions = [...timerQuestions];
       updatedQuestions[currentTimerIndex] = {
         ...currentQuestion,
         isAnswered: true,
         isCorrect: false,
-        explanation: "시간 초과로 건너뛴 문제입니다.",
+        explanation: result.explanation || "해설이 없습니다.",
       };
       setTimerQuestions(updatedQuestions);
       
