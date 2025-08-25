@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
-import type { SessionResponse, AnswerResponse, ResultsResponse, QuestionWithChoices } from "@shared/schema";
+import type { SessionResponse, AnswerResponse, ResultsResponse, QuestionWithChoices, Response } from "@shared/schema";
 import multer from "multer";
 import csv from "csv-parser";
 import { Readable } from "stream";
@@ -54,6 +54,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Stats error:', error);
       res.status(500).json({ message: "통계 조회 중 오류가 발생했습니다." });
+    }
+  });
+
+  // Question statistics endpoint - 문제별 정답률 통계
+  app.get("/api/admin/question-stats", async (req, res) => {
+    try {
+      const questions = await storage.getQuestions();
+      const questionStats = [];
+
+      for (const question of questions) {
+        const responses = await storage.getResponsesForQuestion(question.id);
+        const totalAttempts = responses.length;
+        const correctAttempts = responses.filter(r => r.isCorrect).length;
+        const accuracy = totalAttempts > 0 ? ((correctAttempts / totalAttempts) * 100).toFixed(1) : 0;
+
+        questionStats.push({
+          questionId: question.id,
+          questionStem: question.stem.substring(0, 100) + (question.stem.length > 100 ? '...' : ''), // 100자까지만
+          type: question.type,
+          difficulty: question.difficulty,
+          totalAttempts,
+          correctAttempts,
+          accuracy: parseFloat(accuracy as string),
+        });
+      }
+
+      // 정답률 낮은 순으로 정렬
+      questionStats.sort((a, b) => a.accuracy - b.accuracy);
+
+      res.json(questionStats);
+    } catch (error) {
+      console.error('Question stats error:', error);
+      res.status(500).json({ message: "문제 통계 조회 중 오류가 발생했습니다." });
     }
   });
 
@@ -330,7 +363,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Get the actual number of questions for this session
       const sessionQuestionOrder = sessionQuestionOrders.get(sessionId);
-      console.log(`🔍 Session ${sessionId}: questionOrder=${sessionQuestionOrder?.length}, responses=${responses.length}`);
       const actualTotalQuestions = sessionQuestionOrder ? sessionQuestionOrder.length : responses.length;
 
       const correctAnswers = responses.filter(r => r.isCorrect).length;

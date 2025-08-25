@@ -20,6 +20,7 @@ export interface IStorage {
   // Responses
   createResponse(response: InsertResponse): Promise<Response>;
   getResponsesForSession(sessionId: string): Promise<Response[]>;
+  getResponsesForQuestion(questionId: string): Promise<Response[]>;
   
   // Page Views
   recordPageView(pageView: InsertPageView): Promise<PageView>;
@@ -148,6 +149,10 @@ export class DatabaseStorage implements IStorage {
 
   async getResponsesForSession(sessionId: string): Promise<Response[]> {
     return await db.select().from(responses).where(eq(responses.sessionId, sessionId));
+  }
+
+  async getResponsesForQuestion(questionId: string): Promise<Response[]> {
+    return await db.select().from(responses).where(eq(responses.questionId, questionId));
   }
 
   async recordPageView(insertPageView: InsertPageView): Promise<PageView> {
@@ -340,6 +345,12 @@ export class MemStorage implements IStorage {
   async getResponsesForSession(sessionId: string): Promise<Response[]> {
     return Array.from(this.responses.values()).filter(
       response => response.sessionId === sessionId
+    );
+  }
+
+  async getResponsesForQuestion(questionId: string): Promise<Response[]> {
+    return Array.from(this.responses.values()).filter(
+      response => response.questionId === questionId
     );
   }
 

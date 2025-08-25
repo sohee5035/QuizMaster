@@ -23,6 +23,19 @@ function StatsCard() {
     refetchInterval: 30000, // 30초마다 자동 새로고침
   });
 
+  const { data: questionStats, isLoading: isQuestionStatsLoading } = useQuery<{
+    questionId: string;
+    questionStem: string;
+    type: string;
+    difficulty: number | null;
+    totalAttempts: number;
+    correctAttempts: number;
+    accuracy: number;
+  }[]>({
+    queryKey: ['/api/admin/question-stats'],
+    refetchInterval: 60000, // 1분마다 자동 새로고침
+  });
+
   if (isLoading) {
     return (
       <Card>
@@ -84,6 +97,119 @@ function StatsCard() {
         
         <div className="text-xs text-gray-500 text-center">
           * 30초마다 자동 업데이트됩니다
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// 문제별 정답률 통계 컴포넌트
+function QuestionStatsCard() {
+  const { data: questionStats, isLoading: isQuestionStatsLoading } = useQuery<{
+    questionId: string;
+    questionStem: string;
+    type: string;
+    difficulty: number | null;
+    totalAttempts: number;
+    correctAttempts: number;
+    accuracy: number;
+  }[]>({
+    queryKey: ['/api/admin/question-stats'],
+    refetchInterval: 60000, // 1분마다 자동 새로고침
+  });
+
+  if (isQuestionStatsLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5" />
+            문제별 정답률 통계
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8 text-gray-500">
+            문제 통계 로딩 중...
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!questionStats || questionStats.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5" />
+            문제별 정답률 통계
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8 text-gray-500">
+            아직 통계 데이터가 없습니다. 사람들이 문제를 풀면 여기에 표시됩니다.
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const getAccuracyColor = (accuracy: number) => {
+    if (accuracy >= 80) return "text-green-600 bg-green-50";
+    if (accuracy >= 60) return "text-yellow-600 bg-yellow-50";
+    return "text-red-600 bg-red-50";
+  };
+
+  const getDifficultyText = (difficulty: number | null) => {
+    if (difficulty === 1) return "쉬움";
+    if (difficulty === 2) return "보통";
+    if (difficulty === 3) return "어려움";
+    return "미설정";
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <BarChart3 className="h-5 w-5" />
+          문제별 정답률 통계
+        </CardTitle>
+        <CardDescription>
+          정답률 낮은 순으로 정렬 • 총 {questionStats.length}문제
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3 max-h-96 overflow-y-auto">
+          {questionStats.map((stat) => (
+            <div key={stat.questionId} className="border rounded-lg p-4 hover:bg-gray-50">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-sm text-gray-500">{stat.questionId}</span>
+                  <span className={`px-2 py-1 rounded text-xs ${stat.type === 'MCQ' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}`}>
+                    {stat.type === 'MCQ' ? '사지선다' : 'OX'}
+                  </span>
+                  <span className="px-2 py-1 rounded text-xs bg-gray-100 text-gray-800">
+                    {getDifficultyText(stat.difficulty)}
+                  </span>
+                </div>
+                <div className={`px-3 py-1 rounded-full text-sm font-bold ${getAccuracyColor(stat.accuracy)}`}>
+                  {stat.accuracy.toFixed(1)}%
+                </div>
+              </div>
+              <div className="text-sm text-gray-700 mb-2 line-clamp-2">
+                {stat.questionStem}
+              </div>
+              <div className="text-xs text-gray-500 flex gap-4">
+                <span>응답수: {stat.totalAttempts}</span>
+                <span>정답: {stat.correctAttempts}</span>
+                <span>오답: {stat.totalAttempts - stat.correctAttempts}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        <div className="text-xs text-gray-500 text-center mt-4">
+          * 1분마다 자동 업데이트됩니다
         </div>
       </CardContent>
     </Card>
@@ -442,6 +568,7 @@ export default function Admin() {
 
               <TabsContent value="stats" className="space-y-4">
                 <StatsCard />
+                <QuestionStatsCard />
               </TabsContent>
 
               <TabsContent value="ox" className="space-y-4">
