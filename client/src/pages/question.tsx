@@ -215,17 +215,15 @@ export default function Question({ sessionData, onAnswer, onNext, answerResult, 
 
       {/* Next Question Button */}
       {answerResult && (
-        <div className="text-center">
-          <Button
-            onClick={onNext}
-            disabled={isLoading}
-            className="bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-400 text-white font-semibold py-3 px-8 rounded-xl transition-colors duration-200 shadow-sm flex items-center justify-center gap-2"
-            data-testid="button-next-question"
-          >
-            {isLoading && <Spinner size="sm" className="text-white" />}
-            {isLoading ? "다음 문제 준비 중..." : "다음 문제"}
-          </Button>
-        </div>
+        <Button
+          onClick={onNext}
+          disabled={isLoading}
+          className="w-full bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-400 text-white font-semibold py-4 px-6 rounded-xl transition-colors duration-200 shadow-sm flex items-center justify-center gap-2"
+          data-testid="button-next-question"
+        >
+          {isLoading && <Spinner size="sm" className="text-white" />}
+          {isLoading ? "다음 문제 준비 중..." : "다음 문제"}
+        </Button>
       )}
     </div>
   );
