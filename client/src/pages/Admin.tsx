@@ -768,6 +768,7 @@ export default function Admin() {
       tags: mcqForm.tags,
       difficulty: mcqForm.difficulty ? parseInt(mcqForm.difficulty) : null,
       source: mcqForm.source,
+      author: mcqForm.author,
       choices: [
         { content: mcqForm.choice1, isCorrect: mcqForm.correctAnswer === "1" },
         { content: mcqForm.choice2, isCorrect: mcqForm.correctAnswer === "2" },
