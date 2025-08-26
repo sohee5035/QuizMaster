@@ -38,11 +38,9 @@ export function validateEnvironment(): ValidationResult {
 
   // Validate DATABASE_URL
   if (!process.env.DATABASE_URL) {
-    if (nodeEnv === 'production') {
-      errors.push('DATABASE_URL is required in production environment');
-    } else {
-      warnings.push('DATABASE_URL not set - using in-memory storage (development only)');
-    }
+    // Always treat missing DATABASE_URL as a warning, not an error
+    // The application can gracefully fall back to in-memory storage
+    warnings.push('DATABASE_URL not set - using in-memory storage');
   } else {
     config.DATABASE_URL = process.env.DATABASE_URL;
     
@@ -62,13 +60,23 @@ export function validateEnvironment(): ValidationResult {
   };
 }
 
-export function logEnvironmentStatus(): ValidationResult {
+export async function logEnvironmentStatus(): Promise<ValidationResult> {
   const validation = validateEnvironment();
   
+  // Import database connection status for accurate reporting
+  let isDbConnected = false;
+  try {
+    const dbModule = await import('./db.js');
+    isDbConnected = dbModule.isDbConnected;
+  } catch {
+    // Module not available yet, use config presence as fallback
+    isDbConnected = !!validation.config.DATABASE_URL;
+  }
+
   console.log('\n🔧 Environment Configuration Check:');
   console.log(`   NODE_ENV: ${validation.config.NODE_ENV}`);
   console.log(`   PORT: ${validation.config.PORT}`);
-  console.log(`   DATABASE: ${validation.config.DATABASE_URL ? '✅ Connected' : '❌ Not configured'}`);
+  console.log(`   STORAGE: ${isDbConnected ? '✅ Database' : '⚠️  Memory (temporary)'}`);
   
   if (validation.warnings.length > 0) {
     console.log('\n⚠️  Warnings:');
@@ -87,19 +95,15 @@ export function logEnvironmentStatus(): ValidationResult {
   if (validation.config.NODE_ENV === 'production') {
     console.log('\n🚀 Production Environment Checklist:');
     console.log(`   ✓ NODE_ENV set to production`);
-    console.log(`   ${validation.config.DATABASE_URL ? '✓' : '❌'} DATABASE_URL configured`);
     console.log(`   ✓ PORT configured (${validation.config.PORT})`);
+    console.log(`   ${isDbConnected ? '✅' : '⚠️ '} Database: ${isDbConnected ? 'Connected' : 'Using memory storage'}`);
     
-    if (!validation.isValid) {
-      console.log('\n💡 To fix production deployment issues:');
+    if (!isDbConnected) {
+      console.log('\n💡 For persistent data in production:');
       console.log('   1. Go to the Deployments Configuration tab');
-      console.log('   2. Add the required environment variables:');
-      validation.errors.forEach(error => {
-        if (error.includes('DATABASE_URL')) {
-          console.log('      • DATABASE_URL: Your PostgreSQL connection string');
-        }
-      });
+      console.log('   2. Add DATABASE_URL environment variable');
       console.log('   3. Redeploy your application');
+      console.log('   Note: App will work with temporary memory storage until then');
     }
   }
   

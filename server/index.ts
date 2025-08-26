@@ -43,11 +43,11 @@ app.use((req, res, next) => {
 
 (async () => {
   // Perform comprehensive environment validation
-  const envValidation = logEnvironmentStatus();
+  const envValidation = await logEnvironmentStatus();
   
-  // In production, fail fast if environment is invalid
+  // In production, fail fast only if there are actual errors (not warnings)
   if (process.env.NODE_ENV === 'production' && !envValidation.isValid) {
-    console.error('\n💥 Production deployment cannot start due to environment errors');
+    console.error('\n💥 Production deployment cannot start due to configuration errors');
     console.error('Please fix the above issues and redeploy');
     process.exit(1);
   }
