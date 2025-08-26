@@ -208,9 +208,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { mode = "study", questionCount, difficulty } = req.body;
       
       const session = await storage.createSession({ mode });
-      let questions = await storage.getQuestions();
+      
+      // Get questions based on mode
+      let questions;
+      if (mode === "wangsohee") {
+        questions = await storage.getQuestionsByAuthor("wangsohee");
+      } else {
+        questions = await storage.getQuestions();
+      }
       
       if (questions.length === 0) {
+        if (mode === "wangsohee") {
+          return res.status(404).json({ message: "아직 왕소희 제작 문제가 없습니다." });
+        }
         return res.status(404).json({ message: "No questions available" });
       }
 

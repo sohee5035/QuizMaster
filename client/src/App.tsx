@@ -109,6 +109,29 @@ function AppContent() {
     },
   });
 
+  // 왕소희 제작 문제 세션 시작
+  const startWangsoheeMutation = useMutation({
+    mutationFn: () => api.startSession("wangsohee"),
+    onSuccess: (data) => {
+      setSessionData(data);
+      setAnswerResult(null);
+      setAppState("question");
+      
+      toast({
+        title: "왕소희 제작 문제 도전!",
+        description: "왕소희님이 직접 만든 특별한 문제들을 풀어보세요! 👑",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "알림",
+        description: "아직 왕소희 제작 문제가 없습니다. 관리자 페이지에서 문제를 등록해주세요.",
+        variant: "destructive",
+      });
+      console.error("Failed to start wangsohee mode:", error);
+    },
+  });
+
   const submitAnswerMutation = useMutation({
     mutationFn: (answer: { selectedChoiceId?: string; selectedBoolean?: boolean }) => {
       if (!sessionData) throw new Error("No active session");
@@ -341,7 +364,12 @@ function AppContent() {
       </nav>
 
       {appState === "home" && (
-        <Home onStart={handleStart} onStartTimer={handleStartTimer} onStartDifficult={() => startDifficultMutation.mutate()} />
+        <Home 
+          onStart={handleStart} 
+          onStartTimer={handleStartTimer} 
+          onStartDifficult={() => startDifficultMutation.mutate()}
+          onStartWangsohee={() => startWangsoheeMutation.mutate()}
+        />
       )}
 
       {/* 로딩 오버레이 */}
@@ -349,13 +377,16 @@ function AppContent() {
         isLoading={
           startSessionMutation.isPending || 
           startDifficultMutation.isPending || 
-          startTimerMutation.isPending
+          startTimerMutation.isPending ||
+          startWangsoheeMutation.isPending
         } 
         text={
           startDifficultMutation.isPending 
             ? "어려운 문제들을 찾는 중..." 
             : startTimerMutation.isPending 
             ? "타이머 모드를 준비하는 중..." 
+            : startWangsoheeMutation.isPending
+            ? "왕소희 제작 문제를 준비하는 중..."
             : "문제를 준비하는 중..."
         }
       />

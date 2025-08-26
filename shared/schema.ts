@@ -12,6 +12,7 @@ export const questions = pgTable("questions", {
   difficulty: integer("difficulty"),
   source: text("source"),
   answer: boolean("answer"), // for OX questions
+  author: text("author").default("default").notNull(), // 'default' or 'wangsohee'
 });
 
 export const choices = pgTable("choices", {
@@ -23,7 +24,7 @@ export const choices = pgTable("choices", {
 
 export const sessions = pgTable("sessions", {
   id: text("id").primaryKey(),
-  mode: text("mode").notNull(), // 'study', 'mock', 'review'
+  mode: text("mode").notNull(), // 'study', 'mock', 'review', 'wangsohee'
   startedAt: timestamp("started_at").defaultNow(),
   endedAt: timestamp("ended_at"),
 });

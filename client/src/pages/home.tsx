@@ -6,9 +6,10 @@ interface HomeProps {
   onStart: (questionCount?: number, difficulty?: number) => void;
   onStartTimer: () => void;
   onStartDifficult: () => void;
+  onStartWangsohee: () => void;
 }
 
-export default function Home({ onStart, onStartTimer, onStartDifficult }: HomeProps) {
+export default function Home({ onStart, onStartTimer, onStartDifficult, onStartWangsohee }: HomeProps) {
   return (
     <div className="container mx-auto max-w-2xl p-6">
       <Card className="mt-8 shadow-sm">
@@ -61,6 +62,14 @@ export default function Home({ onStart, onStartTimer, onStartDifficult }: HomePr
               data-testid="button-start-difficult"
             >
               🤔 남들은 뭘 많이 틀렸을까? (TOP 20)
+            </Button>
+            
+            <Button
+              onClick={onStartWangsohee}
+              className="w-full bg-pink-500 hover:bg-pink-600 text-white font-semibold py-4 px-6 rounded-xl transition-colors duration-200 shadow-sm"
+              data-testid="button-start-wangsohee"
+            >
+              👑 왕소희 제작 문제 풀어보기 👑
             </Button>
             
             <Button

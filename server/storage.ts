@@ -8,6 +8,7 @@ export interface IStorage {
   // Questions
   getQuestion(id: string): Promise<Question | undefined>;
   getQuestions(): Promise<Question[]>;
+  getQuestionsByAuthor(author: string): Promise<Question[]>;
   createQuestion(question: InsertQuestion): Promise<Question>;
   getChoicesForQuestion(questionId: string): Promise<Choice[]>;
   createChoice(choice: InsertChoice): Promise<Choice>;
@@ -94,6 +95,10 @@ export class DatabaseStorage implements IStorage {
 
   async getQuestions(): Promise<Question[]> {
     return await db.select().from(questions);
+  }
+
+  async getQuestionsByAuthor(author: string): Promise<Question[]> {
+    return await db.select().from(questions).where(eq(questions.author, author));
   }
 
   async createQuestion(insertQuestion: InsertQuestion): Promise<Question> {
@@ -247,6 +252,7 @@ export class MemStorage implements IStorage {
       difficulty: 2,
       source: "외환 규정집",
       answer: null,
+      author: "default",
     };
 
     const q2: Question = {
@@ -258,6 +264,7 @@ export class MemStorage implements IStorage {
       difficulty: 1,
       source: "외환 규정집",
       answer: false,
+      author: "default",
     };
 
     this.questions.set("q1", q1);
@@ -282,6 +289,10 @@ export class MemStorage implements IStorage {
     return Array.from(this.questions.values());
   }
 
+  async getQuestionsByAuthor(author: string): Promise<Question[]> {
+    return Array.from(this.questions.values()).filter(q => q.author === author);
+  }
+
   async createQuestion(insertQuestion: InsertQuestion): Promise<Question> {
     const id = insertQuestion.id || randomUUID();
     const question: Question = {
@@ -292,6 +303,7 @@ export class MemStorage implements IStorage {
       difficulty: insertQuestion.difficulty ?? null,
       source: insertQuestion.source ?? null,
       answer: insertQuestion.answer ?? null,
+      author: insertQuestion.author ?? "default",
     };
     this.questions.set(id, question);
     return question;

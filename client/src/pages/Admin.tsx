@@ -399,7 +399,8 @@ export default function Admin() {
     explanation: "",
     tags: "",
     difficulty: "",
-    source: ""
+    source: "",
+    author: "default"
   });
 
   // 사지선다 문제 상태
@@ -414,7 +415,8 @@ export default function Admin() {
     explanation: "",
     tags: "",
     difficulty: "",
-    source: ""
+    source: "",
+    author: "default"
   });
 
 
@@ -440,7 +442,8 @@ export default function Admin() {
         explanation: "",
         tags: "",
         difficulty: "",
-        source: ""
+        source: "",
+        author: "default"
       });
       setMcqForm({
         questionId: "",
@@ -453,7 +456,8 @@ export default function Admin() {
         explanation: "",
         tags: "",
         difficulty: "",
-        source: ""
+        source: "",
+        author: "default"
       });
     },
     onError: (error: any) => {
@@ -728,7 +732,7 @@ export default function Admin() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-4 gap-4">
                     <div>
                       <Label htmlFor="ox-tags">태그</Label>
                       <Input
@@ -749,6 +753,18 @@ export default function Admin() {
                           <SelectItem value="1">1 (쉬움)</SelectItem>
                           <SelectItem value="2">2 (보통)</SelectItem>
                           <SelectItem value="3">3 (어려움)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="ox-author">작성자</Label>
+                      <Select value={oxForm.author} onValueChange={(value) => setOxForm({...oxForm, author: value})}>
+                        <SelectTrigger data-testid="select-ox-author">
+                          <SelectValue placeholder="작성자 선택" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="default">기본 문제</SelectItem>
+                          <SelectItem value="wangsohee">👑 왕소희 제작</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -875,7 +891,7 @@ export default function Admin() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-4 gap-4">
                     <div>
                       <Label htmlFor="mcq-tags">태그</Label>
                       <Input
@@ -896,6 +912,18 @@ export default function Admin() {
                           <SelectItem value="1">1 (쉬움)</SelectItem>
                           <SelectItem value="2">2 (보통)</SelectItem>
                           <SelectItem value="3">3 (어려움)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="mcq-author">작성자</Label>
+                      <Select value={mcqForm.author} onValueChange={(value) => setMcqForm({...mcqForm, author: value})}>
+                        <SelectTrigger data-testid="select-mcq-author">
+                          <SelectValue placeholder="작성자 선택" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="default">기본 문제</SelectItem>
+                          <SelectItem value="wangsohee">👑 왕소희 제작</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
