@@ -559,6 +559,8 @@ export default function Admin() {
         title: "성공",
         description: "문제가 성공적으로 등록되었습니다.",
       });
+      // 캐시 무효화하여 문제 목록 새로고침
+      queryClient.invalidateQueries({ queryKey: ['/api/questions'] });
       // 폼 초기화
       setOxForm({
         questionId: "",
