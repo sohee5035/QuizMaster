@@ -502,7 +502,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // 관리자 API - 문제 등록
   app.post("/api/admin/questions", async (req, res) => {
     try {
-      const { type, questionId, stem, explanation, tags, difficulty, source, answer, choices } = req.body;
+      const { type, questionId, stem, explanation, tags, difficulty, source, answer, choices, author } = req.body;
 
       if (!type || !questionId || !stem || !explanation) {
         return res.status(400).json({ message: "필수 필드가 누락되었습니다." });
@@ -518,6 +518,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         difficulty: difficulty || null,
         source: source || null,
         answer: type === "OX" ? answer : null,
+        author: author || "default",
       });
 
       // 사지선다인 경우 선택지 생성
@@ -552,7 +553,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const results = [];
 
       for (const questionData of questions) {
-        const { type, questionId, stem, explanation, tags, difficulty, source, answer, choices } = questionData;
+        const { type, questionId, stem, explanation, tags, difficulty, source, answer, choices, author } = questionData;
 
         if (!type || !questionId || !stem || !explanation) {
           results.push({ questionId, success: false, error: "필수 필드 누락" });
@@ -570,6 +571,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             difficulty: difficulty || null,
             source: source || null,
             answer: type === "OX" ? answer : null,
+            author: author || "default",
           });
 
           // 사지선다인 경우 선택지 생성
