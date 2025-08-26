@@ -24,19 +24,6 @@ function StatsCard() {
     refetchInterval: 30000, // 30초마다 자동 새로고침
   });
 
-  const { data: questionStats, isLoading: isQuestionStatsLoading } = useQuery<{
-    questionId: string;
-    questionStem: string;
-    type: string;
-    difficulty: number | null;
-    totalAttempts: number;
-    correctAttempts: number;
-    accuracy: number;
-  }[]>({
-    queryKey: ['/api/admin/question-stats'],
-    refetchInterval: 60000, // 1분마다 자동 새로고침
-  });
-
   if (isLoading) {
     return (
       <Card>
@@ -99,6 +86,120 @@ function StatsCard() {
         
         <div className="text-xs text-gray-500 text-center">
           * 30초마다 자동 업데이트됩니다
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// 모드별 사용 통계 컴포넌트
+function ModeStatsCard() {
+  const { data: modeStats, isLoading: isModeStatsLoading } = useQuery<{
+    mode: string;
+    count: number;
+  }[]>({
+    queryKey: ['/api/admin/mode-stats'],
+    refetchInterval: 60000, // 1분마다 자동 새로고침
+  });
+
+  if (isModeStatsLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5" />
+            모드별 사용 통계
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8 text-gray-500 flex flex-col items-center gap-3">
+            <Spinner size="md" className="text-blue-500" />
+            모드 통계 로딩 중...
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!modeStats || modeStats.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5" />
+            모드별 사용 통계
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8 text-gray-500">
+            아직 사용 데이터가 없습니다.
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const getModeDisplayName = (mode: string) => {
+    switch (mode) {
+      case 'study': return '📚 일반 학습';
+      case 'timer': return '⏱️ 타이머 모드';
+      case 'difficult': return '🤔 어려운 문제';
+      case 'mock': return '🎯 모의시험';
+      case 'review': return '📝 복습 모드';
+      default: return `❓ ${mode}`;
+    }
+  };
+
+  const getModeColor = (mode: string) => {
+    switch (mode) {
+      case 'study': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+      case 'timer': return 'bg-red-50 text-red-700 border-red-200';
+      case 'difficult': return 'bg-purple-50 text-purple-700 border-purple-200';
+      case 'mock': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'review': return 'bg-green-50 text-green-700 border-green-200';
+      default: return 'bg-gray-50 text-gray-700 border-gray-200';
+    }
+  };
+
+  const totalSessions = modeStats.reduce((sum, stat) => sum + stat.count, 0);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <BarChart3 className="h-5 w-5" />
+          모드별 사용 통계
+        </CardTitle>
+        <CardDescription>어떤 학습 모드가 인기인지 확인해보세요</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {modeStats.map((stat, index) => {
+          const percentage = ((stat.count / totalSessions) * 100).toFixed(1);
+          return (
+            <div key={stat.mode} className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getModeColor(stat.mode)}`}>
+                    {index + 1}위
+                  </span>
+                  <span className="font-medium text-gray-900">{getModeDisplayName(stat.mode)}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-900">{stat.count}회</span>
+                  <span className="text-xs text-gray-500">({percentage}%)</span>
+                </div>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-gradient-to-r from-blue-400 to-purple-500 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${percentage}%` }}
+                ></div>
+              </div>
+            </div>
+          );
+        })}
+        <div className="text-xs text-gray-500 text-center pt-4 border-t">
+          * 1분마다 자동 업데이트됩니다 | 총 세션 수: {totalSessions}개
         </div>
       </CardContent>
     </Card>
@@ -571,6 +672,7 @@ export default function Admin() {
 
               <TabsContent value="stats" className="space-y-4">
                 <StatsCard />
+                <ModeStatsCard />
                 <QuestionStatsCard />
               </TabsContent>
 

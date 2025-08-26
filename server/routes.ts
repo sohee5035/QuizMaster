@@ -57,6 +57,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Mode usage statistics endpoint
+  app.get("/api/admin/mode-stats", async (req, res) => {
+    try {
+      const sessions = await storage.getAllSessions();
+      const modeStats: { [key: string]: number } = {};
+
+      // Count sessions by mode
+      for (const session of sessions) {
+        const mode = session.mode || 'unknown';
+        modeStats[mode] = (modeStats[mode] || 0) + 1;
+      }
+
+      // Sort by count descending
+      const sortedModeStats = Object.entries(modeStats)
+        .map(([mode, count]) => ({ mode, count }))
+        .sort((a, b) => b.count - a.count);
+
+      res.json(sortedModeStats);
+    } catch (error) {
+      console.error('Mode stats error:', error);
+      res.status(500).json({ message: "모드 통계 조회 중 오류가 발생했습니다." });
+    }
+  });
+
   // Question statistics endpoint - 문제별 정답률 통계
   app.get("/api/admin/question-stats", async (req, res) => {
     try {

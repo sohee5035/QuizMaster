@@ -15,6 +15,7 @@ export interface IStorage {
   // Sessions
   createSession(session: InsertSession): Promise<Session>;
   getSession(id: string): Promise<Session | undefined>;
+  getAllSessions(): Promise<Session[]>;
   endSession(id: string): Promise<void>;
   
   // Responses
@@ -129,6 +130,10 @@ export class DatabaseStorage implements IStorage {
   async getSession(id: string): Promise<Session | undefined> {
     const [session] = await db.select().from(sessions).where(eq(sessions.id, id));
     return session || undefined;
+  }
+
+  async getAllSessions(): Promise<Session[]> {
+    return await db.select().from(sessions);
   }
 
   async endSession(id: string): Promise<void> {
@@ -319,6 +324,10 @@ export class MemStorage implements IStorage {
 
   async getSession(id: string): Promise<Session | undefined> {
     return this.sessions.get(id);
+  }
+
+  async getAllSessions(): Promise<Session[]> {
+    return Array.from(this.sessions.values());
   }
 
   async endSession(id: string): Promise<void> {
