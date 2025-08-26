@@ -1,5 +1,5 @@
 import { type Question, type Choice, type Session, type Response, type PageView, type InsertQuestion, type InsertChoice, type InsertSession, type InsertResponse, type InsertPageView } from "@shared/schema";
-import { db } from "./db";
+import { database as db, isDbConnected } from "./db";
 import { questions, choices, sessions, responses, pageViews } from "@shared/schema";
 import { eq, sql, gte } from "drizzle-orm";
 import { randomUUID } from "crypto";
@@ -43,6 +43,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   private async initializeDatabase() {
+    if (!isDbConnected) {
+      console.warn("⚠️  Skipping database initialization - database not connected");
+      return;
+    }
+
     try {
       // Check if data already exists
       const existingQuestions = await db.select().from(questions);
@@ -85,8 +90,10 @@ export class DatabaseStorage implements IStorage {
       ];
 
       await db.insert(choices).values(choices1);
+      console.log("✅ Database initialized with seed data");
     } catch (error) {
-      console.error("Failed to initialize database:", error);
+      console.error("❌ Failed to initialize database with seed data:", error);
+      console.warn("⚠️  Application will continue but database operations may fail");
     }
   }
   async getQuestion(id: string): Promise<Question | undefined> {
@@ -449,4 +456,13 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new DatabaseStorage();
+// Initialize storage based on database availability
+export const storage = (() => {
+  if (isDbConnected) {
+    console.log("✅ Using database storage");
+    return new DatabaseStorage();
+  } else {
+    console.log("⚠️  Database unavailable - falling back to memory storage");
+    return new MemStorage();
+  }
+})();
