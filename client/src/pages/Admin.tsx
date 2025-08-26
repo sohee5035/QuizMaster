@@ -393,10 +393,11 @@ function ManageQuestionsCard() {
   const queryClient = useQueryClient();
 
   // 모든 문제 조회
-  const { data: questions, isLoading } = useQuery<any[]>({
+  const { data: questions, isLoading, error } = useQuery<any[]>({
     queryKey: ['/api/questions'],
     refetchInterval: 30000, // 30초마다 새로고침
   });
+
 
   // 문제 삭제 mutation
   const deleteQuestionMutation = useMutation({
