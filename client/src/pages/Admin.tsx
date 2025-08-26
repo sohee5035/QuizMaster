@@ -9,8 +9,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Eye, Calendar, BarChart3 } from "lucide-react";
+import { Eye, Calendar, BarChart3, Trash2 } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
+import { Badge } from "@/components/ui/badge";
 
 // 조회수 통계 컴포넌트
 function StatsCard() {
@@ -386,6 +387,129 @@ function AdminLogin({ onLogin }: { onLogin: () => void }) {
   );
 }
 
+// 문제 관리 컴포넌트
+function ManageQuestionsCard() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // 모든 문제 조회
+  const { data: questions, isLoading } = useQuery<any[]>({
+    queryKey: ['/api/questions'],
+    refetchInterval: 30000, // 30초마다 새로고침
+  });
+
+  // 문제 삭제 mutation
+  const deleteQuestionMutation = useMutation({
+    mutationFn: async (questionId: string) => {
+      const response = await fetch(`/api/admin/questions/${questionId}`, {
+        method: "DELETE",
+      });
+      
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(error);
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "삭제 완료",
+        description: data.message || "문제가 삭제되었습니다.",
+      });
+      // 캐시 무효화하여 목록 새로고침
+      queryClient.invalidateQueries({ queryKey: ['/api/questions'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "오류",
+        description: error.message || "문제 삭제에 실패했습니다.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDeleteQuestion = (questionId: string, questionStem: string) => {
+    if (window.confirm(`정말로 이 문제를 삭제하시겠습니까?\n\n"${questionStem.substring(0, 50)}${questionStem.length > 50 ? '...' : ''}"\n\n이 작업은 되돌릴 수 없습니다!`)) {
+      deleteQuestionMutation.mutate(questionId);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>문제 관리</CardTitle>
+          <CardDescription>등록된 문제를 확인하고 삭제할 수 있습니다.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8 text-gray-500 flex flex-col items-center gap-3">
+            <Spinner size="md" className="text-blue-500" />
+            문제 목록 로딩 중...
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>문제 관리</CardTitle>
+        <CardDescription>등록된 문제를 확인하고 삭제할 수 있습니다. (총 {questions?.length || 0}개)</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4 max-h-96 overflow-y-auto">
+          {questions && questions.length > 0 ? (
+            questions.map((question: any) => (
+              <div key={question.id} className="border rounded-lg p-4 space-y-3">
+                <div className="flex justify-between items-start gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge variant={question.type === "MCQ" ? "default" : "secondary"}>
+                        {question.type === "MCQ" ? "사지선다" : "OX"}
+                      </Badge>
+                      {question.author === "wangsohee" && (
+                        <Badge variant="outline" className="bg-pink-50 text-pink-700 border-pink-200">
+                          👑 왕소희 제작
+                        </Badge>
+                      )}
+                      <span className="text-sm text-gray-500">ID: {question.id}</span>
+                    </div>
+                    <p className="text-sm font-medium mb-1">
+                      {question.stem}
+                    </p>
+                    {question.tags && (
+                      <p className="text-xs text-gray-500">태그: {question.tags}</p>
+                    )}
+                    {question.difficulty && (
+                      <p className="text-xs text-gray-500">난이도: {question.difficulty}</p>
+                    )}
+                  </div>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => handleDeleteQuestion(question.id, question.stem)}
+                    disabled={deleteQuestionMutation.isPending}
+                    data-testid={`button-delete-${question.id}`}
+                  >
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    {deleteQuestionMutation.isPending ? "삭제 중..." : "삭제"}
+                  </Button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              등록된 문제가 없습니다.
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function Admin() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -667,8 +791,9 @@ export default function Admin() {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="stats" className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="stats">조회수 통계</TabsTrigger>
+                <TabsTrigger value="manage">문제 관리</TabsTrigger>
                 <TabsTrigger value="ox">OX 문제</TabsTrigger>
                 <TabsTrigger value="mcq">사지선다</TabsTrigger>
                 <TabsTrigger value="csv">CSV 업로드</TabsTrigger>
@@ -678,6 +803,10 @@ export default function Admin() {
                 <StatsCard />
                 <ModeStatsCard />
                 <QuestionStatsCard />
+              </TabsContent>
+
+              <TabsContent value="manage" className="space-y-4">
+                <ManageQuestionsCard />
               </TabsContent>
 
               <TabsContent value="ox" className="space-y-4">

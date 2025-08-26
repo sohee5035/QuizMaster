@@ -777,6 +777,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 관리자 API - 개별 문제 삭제
+  app.delete("/api/admin/questions/:id", async (req, res) => {
+    try {
+      const questionId = req.params.id;
+      
+      // 문제가 존재하는지 확인
+      const question = await storage.getQuestion(questionId);
+      if (!question) {
+        return res.status(404).json({ message: "문제를 찾을 수 없습니다." });
+      }
+
+      // 문제와 관련된 선택지, 응답 모두 삭제
+      await storage.deleteQuestion(questionId);
+      
+      res.json({ message: "문제가 성공적으로 삭제되었습니다." });
+    } catch (error) {
+      console.error("Error deleting question:", error);
+      res.status(500).json({ message: "문제 삭제에 실패했습니다." });
+    }
+  });
+
   // 관리자 API - 모든 데이터 삭제 (위험한 기능)
   app.delete("/api/admin/questions/clear", async (req, res) => {
     try {

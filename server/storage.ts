@@ -32,6 +32,7 @@ export interface IStorage {
   getTotalUniqueVisitors(): Promise<number>;
   
   // Utility
+  deleteQuestion(questionId: string): Promise<void>;
   clearAllData(): Promise<void>;
 }
 
@@ -212,6 +213,13 @@ export class DatabaseStorage implements IStorage {
       .from(pageViews);
     
     return Number(result[0]?.count || 0);
+  }
+
+  async deleteQuestion(questionId: string): Promise<void> {
+    // 외래키 제약으로 인해 순서대로 삭제
+    await db.delete(responses).where(eq(responses.questionId, questionId));
+    await db.delete(choices).where(eq(choices.questionId, questionId));
+    await db.delete(questions).where(eq(questions.id, questionId));
   }
 
   async clearAllData(): Promise<void> {
@@ -415,6 +423,21 @@ export class MemStorage implements IStorage {
   async getTotalUniqueVisitors(): Promise<number> {
     const uniqueIPs = new Set(Array.from(this.pageViews.values()).map(pv => pv.ipAddress));
     return uniqueIPs.size;
+  }
+
+  async deleteQuestion(questionId: string): Promise<void> {
+    // Delete the question
+    this.questions.delete(questionId);
+    
+    // Delete all choices for this question
+    const choicesToDelete = Array.from(this.choices.values())
+      .filter(choice => choice.questionId === questionId);
+    choicesToDelete.forEach(choice => this.choices.delete(choice.id));
+    
+    // Delete all responses for this question
+    const responsesToDelete = Array.from(this.responses.values())
+      .filter(response => response.questionId === questionId);
+    responsesToDelete.forEach(response => this.responses.delete(response.id));
   }
 
   async clearAllData(): Promise<void> {
