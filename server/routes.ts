@@ -225,7 +225,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (mode === "wangsohee") {
         questions = await storage.getQuestionsByAuthor("wangsohee");
       } else {
-        questions = await storage.getQuestions();
+        // Only get default questions for non-wangsohee modes
+        questions = await storage.getQuestionsByAuthor("default");
       }
       
       if (questions.length === 0) {
