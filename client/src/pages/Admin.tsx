@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Eye, Calendar, BarChart3, Trash2 } from "lucide-react";
+import { Eye, Calendar, BarChart3, Trash2, Globe } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { Badge } from "@/components/ui/badge";
 
@@ -384,6 +384,102 @@ function AdminLogin({ onLogin }: { onLogin: () => void }) {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+// IP별 방문자 통계 컴포넌트
+function VisitorStatsCard() {
+  const { data: visitorStats, isLoading } = useQuery<{
+    visitors: {ipAddress: string; visitCount: number; lastVisitAt: string}[];
+    totalIPs: number;
+    message: string;
+  }>({
+    queryKey: ['/api/admin/visitor-stats'],
+    refetchInterval: 60000, // 1분마다 새로고침
+  });
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Globe className="h-5 w-5" />
+            IP별 방문자 통계
+          </CardTitle>
+          <CardDescription>각 IP 주소별 재방문 횟수 분석</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8 text-gray-500 flex flex-col items-center gap-3">
+            <Spinner size="md" className="text-purple-500" />
+            방문자 통계 로딩 중...
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const { visitors = [], totalIPs = 0 } = visitorStats || {};
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Globe className="h-5 w-5" />
+          IP별 방문자 통계
+        </CardTitle>
+        <CardDescription>각 IP 주소별 재방문 횟수 분석 (총 {totalIPs}개 IP)</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3 max-h-80 overflow-y-auto">
+          {visitors.length > 0 ? (
+            visitors.map((visitor, index) => {
+              const isFrequentVisitor = visitor.visitCount >= 10;
+              const isNewVisitor = visitor.visitCount === 1;
+              
+              return (
+                <div 
+                  key={visitor.ipAddress} 
+                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3">
+                      <span className="font-mono text-sm bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+                        {visitor.ipAddress}
+                      </span>
+                      {isFrequentVisitor && (
+                        <Badge variant="secondary" className="bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300">
+                          단골방문자
+                        </Badge>
+                      )}
+                      {isNewVisitor && (
+                        <Badge variant="outline" className="text-green-700 border-green-300">
+                          신규방문자
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      마지막 방문: {new Date(visitor.lastVisitAt).toLocaleString('ko-KR')}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-lg font-bold text-blue-600">
+                      {visitor.visitCount.toLocaleString()}회
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      #{index + 1}위
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              아직 방문자 데이터가 없습니다.
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -805,6 +901,7 @@ export default function Admin() {
 
               <TabsContent value="stats" className="space-y-4">
                 <StatsCard />
+                <VisitorStatsCard />
                 <ModeStatsCard />
                 <QuestionStatsCard />
               </TabsContent>

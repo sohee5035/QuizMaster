@@ -30,6 +30,7 @@ export interface IStorage {
   getTotalPageViews(): Promise<number>;
   getTodayUniqueVisitors(): Promise<number>;
   getTotalUniqueVisitors(): Promise<number>;
+  getVisitorStatsByIP(): Promise<{ipAddress: string; visitCount: number; lastVisitAt: Date}[]>;
   
   // Utility
   deleteQuestion(questionId: string): Promise<void>;
@@ -220,6 +221,24 @@ export class DatabaseStorage implements IStorage {
       .from(pageViews);
     
     return Number(result[0]?.count || 0);
+  }
+
+  async getVisitorStatsByIP(): Promise<{ipAddress: string; visitCount: number; lastVisitAt: Date}[]> {
+    const result = await db
+      .select({
+        ipAddress: pageViews.ipAddress,
+        visitCount: sql<number>`count(*)`,
+        lastVisitAt: sql<Date>`max(visited_at)`
+      })
+      .from(pageViews)
+      .groupBy(pageViews.ipAddress)
+      .orderBy(sql`count(*) desc`);
+    
+    return result.map((row: any) => ({
+      ipAddress: row.ipAddress,
+      visitCount: Number(row.visitCount),
+      lastVisitAt: new Date(row.lastVisitAt)
+    }));
   }
 
   async deleteQuestion(questionId: string): Promise<void> {
@@ -430,6 +449,37 @@ export class MemStorage implements IStorage {
   async getTotalUniqueVisitors(): Promise<number> {
     const uniqueIPs = new Set(Array.from(this.pageViews.values()).map(pv => pv.ipAddress));
     return uniqueIPs.size;
+  }
+
+  async getVisitorStatsByIP(): Promise<{ipAddress: string; visitCount: number; lastVisitAt: Date}[]> {
+    const ipStats = new Map<string, {visitCount: number; lastVisitAt: Date}>();
+    
+    // Process all page views
+    Array.from(this.pageViews.values()).forEach(pv => {
+      const ip = pv.ipAddress;
+      const existing = ipStats.get(ip);
+      
+      if (existing) {
+        existing.visitCount++;
+        if (pv.visitedAt && pv.visitedAt > existing.lastVisitAt) {
+          existing.lastVisitAt = pv.visitedAt;
+        }
+      } else {
+        ipStats.set(ip, {
+          visitCount: 1,
+          lastVisitAt: pv.visitedAt || new Date()
+        });
+      }
+    });
+    
+    // Convert to array and sort by visit count (descending)
+    return Array.from(ipStats.entries())
+      .map(([ipAddress, stats]) => ({
+        ipAddress,
+        visitCount: stats.visitCount,
+        lastVisitAt: stats.lastVisitAt
+      }))
+      .sort((a, b) => b.visitCount - a.visitCount);
   }
 
   async deleteQuestion(questionId: string): Promise<void> {

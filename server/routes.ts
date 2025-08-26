@@ -213,6 +213,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // IP별 방문자 통계 조회 API
+  app.get("/api/admin/visitor-stats", async (req, res) => {
+    try {
+      const visitorStats = await storage.getVisitorStatsByIP();
+      
+      res.json({
+        visitors: visitorStats,
+        totalIPs: visitorStats.length,
+        message: "IP별 방문자 통계를 성공적으로 조회했습니다."
+      });
+    } catch (error) {
+      console.error('Visitor stats error:', error);
+      res.status(500).json({ message: "방문자 통계 조회 중 오류가 발생했습니다." });
+    }
+  });
+
   // Start a new session and return first question
   app.post("/api/session/start", async (req, res) => {
     try {
