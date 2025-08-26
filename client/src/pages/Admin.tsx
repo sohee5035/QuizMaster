@@ -525,7 +525,7 @@ export default function Admin() {
     tags: "",
     difficulty: "",
     source: "",
-    author: "wangsohee"
+    author: "default"
   });
 
   // 사지선다 문제 상태
@@ -541,7 +541,7 @@ export default function Admin() {
     tags: "",
     difficulty: "",
     source: "",
-    author: "wangsohee"
+    author: "default"
   });
 
 
@@ -568,7 +568,7 @@ export default function Admin() {
         tags: "",
         difficulty: "",
         source: "",
-        author: "wangsohee"
+        author: "default"
       });
       setMcqForm({
         questionId: "",
@@ -582,7 +582,7 @@ export default function Admin() {
         tags: "",
         difficulty: "",
         source: "",
-        author: "wangsohee"
+        author: "default"
       });
     },
     onError: (error: any) => {
