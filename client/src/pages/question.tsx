@@ -78,17 +78,15 @@ export default function Question({ sessionData, onAnswer, onNext, answerResult, 
     <div className="container mx-auto max-w-2xl p-6">
       {/* Progress Bar */}
       <Card className="mb-6 shadow-sm">
-        <CardContent className="px-6 pt-6 pb-2">
+        <CardContent className="p-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-gray-600">진행상황</span>
             <span className="text-sm font-medium text-gray-900" data-testid="text-progress">
               {currentQuestion} / {totalQuestions}
             </span>
           </div>
+          <Progress value={progressPercentage} className="h-2" />
         </CardContent>
-        <div className="px-0 pb-4">
-          <Progress value={progressPercentage} className="h-3 rounded-none" />
-        </div>
       </Card>
 
       {/* Feedback Banner */}
