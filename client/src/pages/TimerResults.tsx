@@ -151,6 +151,11 @@ export default function TimerResults({ results, onRestart, onHome }: TimerResult
         </Card>
       ) : (
         <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-xl text-green-600 flex items-center">
+              🎉 모든 문제를 정답으로 맞혔습니다!
+            </CardTitle>
+          </CardHeader>
           <CardContent className="text-center py-12">
             <div className="text-6xl mb-4">🎉</div>
             <h3 className="text-2xl font-bold text-green-600 mb-2">완벽해요!</h3>

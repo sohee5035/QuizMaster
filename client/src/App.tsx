@@ -230,10 +230,17 @@ function AppContent() {
       // Check if this is the last question
       if (currentTimerIndex + 1 >= currentQuestion.totalQuestions) {
         // Finish session and show results
+        console.log("🏁 타이머 모드 완료 - 세션 종료 중...");
+        console.log(`📊 전체 timerQuestions 개수: ${timerQuestions.length}`);
+        console.log(`📊 답변된 문제 개수: ${timerQuestions.filter(q => q.isAnswered).length}`);
+        
         const results = await api.finishSession(currentQuestion.sessionId);
+        console.log("📊 서버 결과:", results);
         
         // Use server results for accuracy, but filter client questions for incorrect list
         const incorrectQuestions = timerQuestions.filter(q => q.isAnswered && !q.isCorrect);
+        console.log(`📊 오답 문제 개수: ${incorrectQuestions.length}`);
+        console.log("📊 오답 문제들:", incorrectQuestions.map(q => ({ id: q.question.id, isAnswered: q.isAnswered, isCorrect: q.isCorrect })));
         
         setTimerResults({
           totalQuestions: results.totalQuestions,
