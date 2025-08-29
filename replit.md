@@ -1,77 +1,82 @@
 # KB 외환 마스터 연습 앱
 
-## Overview
+## 개요
 
-This is a Korean language web application designed for practicing KB Foreign Exchange Master exam questions. The app provides an interactive learning platform with multiple-choice questions (MCQ) and true/false (OX) questions, featuring randomized answer choices, explanations after each answer, and progress tracking through a sequential question flow.
+KB 외환 마스터 시험 문제를 연습할 수 있는 한국어 웹 애플리케이션입니다. 객관식(MCQ)과 OX 문제를 제공하며, 답안 선택지 무작위 배치, 답변 후 해설 제공, 순차적인 문제 진행을 통한 학습 진도 추적 기능을 갖춘 인터랙티브 학습 플랫폼입니다.
 
-## User Preferences
+## 사용자 선호사항
 
-Preferred communication style: Simple, everyday language.
+선호하는 커뮤니케이션 스타일: 간단하고 일상적인 언어
 
-## System Architecture
+## 시스템 아키텍처
 
-### Frontend Architecture
-- **Framework**: React 18 with TypeScript, built using Vite for fast development and optimized builds
-- **UI Components**: Shadcn/ui component library with Radix UI primitives for accessible, customizable components
-- **Styling**: Tailwind CSS with CSS variables for theming, configured with Korean fonts (Noto Sans KR, Open Sans)
-- **State Management**: TanStack Query (React Query) for server state management and caching
-- **Routing**: Client-side state-based navigation using React state instead of traditional routing
+### 프론트엔드 아키텍처
+- **프레임워크**: React 18 with TypeScript, 빠른 개발과 최적화된 빌드를 위한 Vite 사용
+- **UI 컴포넌트**: 접근 가능하고 커스터마이징 가능한 컴포넌트를 위한 Shadcn/ui와 Radix UI 기본 요소
+- **스타일링**: 테마용 CSS 변수와 함께 한국어 폰트(Noto Sans KR, Open Sans) 설정된 Tailwind CSS
+- **상태 관리**: 서버 상태 관리와 캐싱을 위한 TanStack Query (React Query)
+- **라우팅**: 전통적인 라우팅 대신 React 상태를 사용한 클라이언트 사이드 상태 기반 내비게이션
 
-### Backend Architecture
-- **Framework**: Express.js with TypeScript, serving both API endpoints and static assets
-- **Database**: PostgreSQL with Drizzle ORM for type-safe database operations (implemented)
-- **Storage**: Database-backed storage using Neon PostgreSQL with automatic data seeding
-- **API Design**: RESTful endpoints for session management, question retrieval, and answer submission
+### 백엔드 아키텍처
+- **프레임워크**: API 엔드포인트와 정적 자산을 제공하는 Express.js with TypeScript
+- **데이터베이스**: 타입 안전한 데이터베이스 작업을 위한 PostgreSQL with Drizzle ORM (구현됨)
+- **저장소**: 자동 데이터 시딩과 함께 Neon PostgreSQL을 사용한 데이터베이스 백업 저장소
+- **API 설계**: 세션 관리, 문제 조회, 답안 제출을 위한 RESTful 엔드포인트
 
-### Data Architecture
-- **Questions Table**: Stores question content, type (MCQ/OX), explanations, difficulty, and metadata
-- **Choices Table**: Stores multiple-choice options linked to questions with correctness flags
-- **Sessions Table**: Tracks user learning sessions with different modes (study, mock, review)
-- **Responses Table**: Records user answers and correctness for session analytics
+### 데이터 아키텍처
+- **문제 테이블**: 문제 내용, 유형(MCQ/OX), 해설, 난이도, 메타데이터 저장
+- **선택지 테이블**: 정답 여부 플래그와 함께 문제에 연결된 객관식 선택지 저장
+- **세션 테이블**: 다양한 모드(학습, 모의고사, 복습)로 사용자 학습 세션 추적
+- **응답 테이블**: 세션 분석을 위한 사용자 답안과 정답 여부 기록
 
-### Key Features
-- **Question Randomization**: Fisher-Yates shuffle algorithm for randomizing choice order in MCQ questions
-- **Progressive Learning**: Sequential question flow with mandatory explanation review before proceeding
-- **Answer Validation**: Immediate feedback with visual indicators for correct/incorrect answers
-- **Session Tracking**: Persistent session state allowing users to continue where they left off
+### 주요 기능
+- **문제 무작위화**: MCQ 문제의 선택지 순서를 무작위로 배치하는 Fisher-Yates 셔플 알고리즘
+- **점진적 학습**: 다음 문제로 진행하기 전 해설 확인을 필수로 하는 순차적 문제 진행
+- **답안 검증**: 정답/오답에 대한 시각적 표시기가 있는 즉시 피드백
+- **세션 추적**: 사용자가 중단한 지점부터 계속할 수 있는 지속적인 세션 상태
 
-### Database Schema Design
-- Questions support both MCQ (multiple choice) and OX (true/false) types in a single table
-- Flexible tagging system for question categorization
-- Foreign key relationships ensuring data integrity between questions, choices, and responses
+### 데이터베이스 스키마 설계
+- 하나의 테이블에서 MCQ(객관식)와 OX(참/거짓) 유형을 모두 지원하는 문제
+- 문제 분류를 위한 유연한 태깅 시스템
+- 문제, 선택지, 응답 간 데이터 무결성을 보장하는 외래 키 관계
 
-## External Dependencies
+## 외부 의존성
 
-### Core Dependencies
-- **@neondatabase/serverless**: Serverless PostgreSQL driver for Neon database connections
-- **drizzle-orm**: Type-safe SQL ORM for database operations with schema validation
-- **drizzle-kit**: Database migration and schema management tools
+### 핵심 의존성
+- **@neondatabase/serverless**: Neon 데이터베이스 연결을 위한 서버리스 PostgreSQL 드라이버
+- **drizzle-orm**: 스키마 검증과 함께 데이터베이스 작업을 위한 타입 안전 SQL ORM
+- **drizzle-kit**: 데이터베이스 마이그레이션 및 스키마 관리 도구
 
-### UI and Styling
-- **@radix-ui/***: Comprehensive set of accessible UI primitives for complex components
-- **tailwindcss**: Utility-first CSS framework with custom configuration for Korean typography
-- **class-variance-authority**: Utility for creating variant-based component APIs
-- **lucide-react**: Icon library providing consistent iconography
+### UI 및 스타일링
+- **@radix-ui/***: 복잡한 컴포넌트를 위한 포괄적인 접근 가능한 UI 기본 요소 세트
+- **tailwindcss**: 한국어 타이포그래피 커스텀 설정을 가진 유틸리티 우선 CSS 프레임워크
+- **class-variance-authority**: 변형 기반 컴포넌트 API 생성을 위한 유틸리티
+- **lucide-react**: 일관된 아이콘을 제공하는 아이콘 라이브러리
 
-### State Management and Data Fetching
-- **@tanstack/react-query**: Server state management with caching, background updates, and error handling
-- **react-hook-form** and **@hookform/resolvers**: Form state management with validation support
+### 상태 관리 및 데이터 페칭
+- **@tanstack/react-query**: 캐싱, 백그라운드 업데이트, 에러 처리를 포함한 서버 상태 관리
+- **react-hook-form** 및 **@hookform/resolvers**: 검증 지원을 포함한 폼 상태 관리
 
-### Development Tools
-- **vite**: Fast build tool with hot module replacement and optimized production builds
-- **typescript**: Static type checking for enhanced developer experience and code reliability
-- **esbuild**: Fast JavaScript bundler for server-side build processes
+### 개발 도구
+- **vite**: 핫 모듈 교체와 최적화된 프로덕션 빌드를 가진 빠른 빌드 도구
+- **typescript**: 향상된 개발자 경험과 코드 신뢰성을 위한 정적 타입 검사
+- **esbuild**: 서버 사이드 빌드 프로세스를 위한 빠른 JavaScript 번들러
 
-### Database Configuration
-- Configured for PostgreSQL dialect with environment-based connection strings
-- Migration files stored in `./migrations` directory with schema defined in `./shared/schema.ts`
-- Supports both development and production database environments
+### 데이터베이스 설정
+- 환경 기반 연결 문자열을 가진 PostgreSQL 방언으로 설정
+- `./migrations` 디렉토리에 저장된 마이그레이션 파일과 `./shared/schema.ts`에 정의된 스키마
+- 개발 및 프로덕션 데이터베이스 환경 모두 지원
 
-## Recent Changes
+## 최근 변경사항
 
-### Database Integration Completed (August 21, 2025)
-- Successfully migrated from in-memory storage to PostgreSQL database using Neon
-- Implemented DatabaseStorage class replacing MemStorage for persistent data
-- Database schema pushed and tables created with `npm run db:push`
-- Automatic data seeding implemented for test questions and choices
-- All existing functionality preserved with database persistence
+### 데이터베이스 통합 완료 (2025년 8월 21일)
+- Neon을 사용하여 인메모리 저장소에서 PostgreSQL 데이터베이스로 성공적으로 마이그레이션
+- 지속적인 데이터를 위해 MemStorage를 대체하는 DatabaseStorage 클래스 구현
+- `npm run db:push`로 데이터베이스 스키마 푸시 및 테이블 생성
+- 테스트 문제와 선택지를 위한 자동 데이터 시딩 구현
+- 데이터베이스 지속성과 함께 기존 기능 모두 보존
+
+### 타이머 모드 결과 표시 개선 (2025년 8월 29일)
+- 타이머 모드 100문제 완료 시 결과가 올바르게 표시되도록 수정
+- 오답이 없을 때 축하 메시지, 오답이 있을 때 상세 복습 섹션 표시
+- 세션 완료 로직 개선 및 디버깅 로그 정리
