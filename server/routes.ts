@@ -530,7 +530,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // 관리자 API - 문제 등록
   app.post("/api/admin/questions", async (req, res) => {
     try {
-      const { type, questionId, stem, explanation, tags, difficulty, source, answer, choices, author } = req.body;
+      const { type, questionId, stem, explanation, tags, difficulty, subject, source, answer, choices, author } = req.body;
 
       if (!type || !questionId || !stem || !explanation) {
         return res.status(400).json({ message: "필수 필드가 누락되었습니다." });
@@ -544,6 +544,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         explanation,
         tags: tags || null,
         difficulty: difficulty || null,
+        subject: subject || null,
         source: source || null,
         answer: type === "OX" ? answer : null,
         author: author || "default",
@@ -581,7 +582,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const results = [];
 
       for (const questionData of questions) {
-        const { type, questionId, stem, explanation, tags, difficulty, source, answer, choices, author } = questionData;
+        const { type, questionId, stem, explanation, tags, difficulty, subject, source, answer, choices, author } = questionData;
 
         if (!type || !questionId || !stem || !explanation) {
           results.push({ questionId, success: false, error: "필수 필드 누락" });
@@ -597,6 +598,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             explanation,
             tags: tags || null,
             difficulty: difficulty || null,
+            subject: subject || null,
             source: source || null,
             answer: type === "OX" ? answer : null,
             author: author || "default",
@@ -675,6 +677,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               const explanation = row.explanation || row["해설"];
               const tags = row.tags || row["태그"] || null;
               const difficulty = (row.difficulty || row["난이도"]) ? parseInt(row.difficulty || row["난이도"]) : null;
+              const subject = (row.subject || row["과목"]) ? parseInt(row.subject || row["과목"]) : null;
               const source = row.source || row["출처"] || null;
 
               if (!questionId || !stem || !explanation) {
@@ -712,7 +715,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 if (isOX) {
                   // OX 문제 처리
                   const answerBoolean = answer.toUpperCase() === "O" || answer === "true";
-                  
+
                   await storage.createQuestion({
                     id: questionId,
                     type: "OX",
@@ -720,6 +723,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     explanation,
                     tags,
                     difficulty,
+                    subject,
                     source,
                     answer: answerBoolean,
                   });
@@ -738,6 +742,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     explanation,
                     tags,
                     difficulty,
+                    subject,
                     source,
                     answer: null,
                   });

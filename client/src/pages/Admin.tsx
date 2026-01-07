@@ -620,6 +620,7 @@ export default function Admin() {
     explanation: "",
     tags: "",
     difficulty: "",
+    subject: "",
     source: "",
     author: "default"
   });
@@ -636,6 +637,7 @@ export default function Admin() {
     explanation: "",
     tags: "",
     difficulty: "",
+    subject: "",
     source: "",
     author: "default"
   });
@@ -665,6 +667,7 @@ export default function Admin() {
         explanation: "",
         tags: "",
         difficulty: "",
+        subject: "",
         source: "",
         author: "default"
       });
@@ -679,6 +682,7 @@ export default function Admin() {
         explanation: "",
         tags: "",
         difficulty: "",
+        subject: "",
         source: "",
         author: "default"
       });
@@ -853,6 +857,7 @@ export default function Admin() {
       ...oxForm,
       answer: oxForm.answer === "O",
       difficulty: oxForm.difficulty ? parseInt(oxForm.difficulty) : null,
+      subject: oxForm.subject ? parseInt(oxForm.subject) : null,
     });
   };
 
@@ -865,6 +870,7 @@ export default function Admin() {
       explanation: mcqForm.explanation,
       tags: mcqForm.tags,
       difficulty: mcqForm.difficulty ? parseInt(mcqForm.difficulty) : null,
+      subject: mcqForm.subject ? parseInt(mcqForm.subject) : null,
       source: mcqForm.source,
       author: mcqForm.author,
       choices: [
@@ -962,16 +968,42 @@ export default function Admin() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="ox-tags">태그</Label>
                       <Input
                         id="ox-tags"
                         value={oxForm.tags}
                         onChange={(e) => setOxForm({...oxForm, tags: e.target.value})}
-                        placeholder="예: 환율우대"
+                        placeholder="예: 데이터 이해"
                         data-testid="input-ox-tags"
                       />
+                    </div>
+                    <div>
+                      <Label htmlFor="ox-source">출처</Label>
+                      <Input
+                        id="ox-source"
+                        value={oxForm.source}
+                        onChange={(e) => setOxForm({...oxForm, source: e.target.value})}
+                        placeholder="예: ADsP 기출문제"
+                        data-testid="input-ox-source"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="ox-subject">과목 (필수)</Label>
+                      <Select value={oxForm.subject} onValueChange={(value) => setOxForm({...oxForm, subject: value})}>
+                        <SelectTrigger data-testid="select-ox-subject">
+                          <SelectValue placeholder="과목 선택" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1">📘 1과목 (데이터 이해)</SelectItem>
+                          <SelectItem value="2">📗 2과목 (데이터 분석 기획)</SelectItem>
+                          <SelectItem value="3">📙 3과목 (데이터 분석)</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div>
                       <Label htmlFor="ox-difficulty">난이도</Label>
@@ -997,16 +1029,6 @@ export default function Admin() {
                           <SelectItem value="wangsohee">👑 왕소희 제작</SelectItem>
                         </SelectContent>
                       </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="ox-source">출처</Label>
-                      <Input
-                        id="ox-source"
-                        value={oxForm.source}
-                        onChange={(e) => setOxForm({...oxForm, source: e.target.value})}
-                        placeholder="예: 외환 규정집"
-                        data-testid="input-ox-source"
-                      />
                     </div>
                   </div>
 
@@ -1121,16 +1143,42 @@ export default function Admin() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="mcq-tags">태그</Label>
                       <Input
                         id="mcq-tags"
                         value={mcqForm.tags}
                         onChange={(e) => setMcqForm({...mcqForm, tags: e.target.value})}
-                        placeholder="예: 환율우대"
+                        placeholder="예: 데이터 이해"
                         data-testid="input-mcq-tags"
                       />
+                    </div>
+                    <div>
+                      <Label htmlFor="mcq-source">출처</Label>
+                      <Input
+                        id="mcq-source"
+                        value={mcqForm.source}
+                        onChange={(e) => setMcqForm({...mcqForm, source: e.target.value})}
+                        placeholder="예: ADsP 기출문제"
+                        data-testid="input-mcq-source"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="mcq-subject">과목 (필수)</Label>
+                      <Select value={mcqForm.subject} onValueChange={(value) => setMcqForm({...mcqForm, subject: value})}>
+                        <SelectTrigger data-testid="select-mcq-subject">
+                          <SelectValue placeholder="과목 선택" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1">📘 1과목 (데이터 이해)</SelectItem>
+                          <SelectItem value="2">📗 2과목 (데이터 분석 기획)</SelectItem>
+                          <SelectItem value="3">📙 3과목 (데이터 분석)</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div>
                       <Label htmlFor="mcq-difficulty">난이도</Label>
@@ -1156,16 +1204,6 @@ export default function Admin() {
                           <SelectItem value="wangsohee">👑 왕소희 제작</SelectItem>
                         </SelectContent>
                       </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="mcq-source">출처</Label>
-                      <Input
-                        id="mcq-source"
-                        value={mcqForm.source}
-                        onChange={(e) => setMcqForm({...mcqForm, source: e.target.value})}
-                        placeholder="예: 외환 규정집"
-                        data-testid="input-mcq-source"
-                      />
                     </div>
                   </div>
 
