@@ -42,12 +42,6 @@ export default function Home({ onStart, onStartDifficult }: HomeProps) {
                 </div>
               </div>
             </div>
-
-            <div className="border-t border-blue-300 pt-4">
-              <div className="text-sm text-gray-700 mb-2">📘 본 페이지는 ADsP 시험 대비 문제를 보기와 순서가 랜덤하게 나오도록 설정한 것입니다.</div>
-              <div className="text-sm font-bold text-gray-800 mb-2">🏆 타이머모드는 정말 실전처럼 연습할 수 있어요! 추천드립니다 ^^</div>
-              <div className="text-sm text-gray-700">😎 문제를 등록하면서 오류가 있을 수 있습니다. 발견 시 제보 부탁드려요!</div>
-            </div>
           </div>
 
           <div className="space-y-3">
