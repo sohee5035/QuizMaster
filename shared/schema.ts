@@ -14,6 +14,7 @@ export const questions = pgTable("questions", {
   answer: boolean("answer"), // for OX questions
   author: text("author").default("default").notNull(), // 'default' or 'wangsohee'
   category: text("category"), // ADsP 카테고리: 'data_understanding', 'data_planning', 'sql', 'statistics', 'programming'
+  subject: integer("subject"), // ADsP 과목: 1 (데이터 이해), 2 (데이터 분석 기획), 3 (데이터 분석)
 });
 
 export const choices = pgTable("choices", {
@@ -122,3 +123,12 @@ export const CATEGORIES = {
 } as const;
 
 export type CategoryKey = keyof typeof CATEGORIES;
+
+// ADsP 과목 정의
+export const SUBJECTS = {
+  1: "1과목: 데이터 이해",
+  2: "2과목: 데이터 분석 기획",
+  3: "3과목: 데이터 분석",
+} as const;
+
+export type SubjectKey = keyof typeof SUBJECTS;

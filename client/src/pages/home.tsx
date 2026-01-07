@@ -2,13 +2,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface HomeProps {
-  onStart: (questionCount?: number, difficulty?: number) => void;
-  onStartTimer: () => void;
+  onStart: (questionCount?: number, subject?: number) => void;
   onStartDifficult: () => void;
-  onStartWangsohee: () => void;
 }
 
-export default function Home({ onStart, onStartTimer, onStartDifficult, onStartWangsohee }: HomeProps) {
+export default function Home({ onStart, onStartDifficult }: HomeProps) {
   return (
     <div className="container mx-auto max-w-2xl p-6">
       <Card className="mt-8 shadow-sm">
@@ -60,14 +58,6 @@ export default function Home({ onStart, onStartTimer, onStartDifficult, onStartW
             >
               전체 문제풀이 시작
             </Button>
-            
-            <Button
-              onClick={onStartTimer}
-              className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-4 px-6 rounded-xl transition-colors duration-200 shadow-sm"
-              data-testid="button-start-timer-mode"
-            >
-              ⚡ 타이머 모드 (문제당 60초) ⚡
-            </Button>
 
             <Button
               onClick={onStartDifficult}
@@ -78,14 +68,6 @@ export default function Home({ onStart, onStartTimer, onStartDifficult, onStartW
             </Button>
 
             <Button
-              onClick={onStartWangsohee}
-              className="w-full bg-pink-500 hover:bg-pink-600 text-white font-semibold py-4 px-6 rounded-xl transition-colors duration-200 shadow-sm"
-              data-testid="button-start-wangsohee"
-            >
-              📝 직접 제작 문제 풀어보기
-            </Button>
-            
-            <Button
               onClick={() => onStart(10)}
               className="w-full bg-gray-400 hover:bg-gray-500 text-white font-semibold py-4 px-6 rounded-xl transition-colors duration-200 shadow-sm"
               data-testid="button-start-session-random"
@@ -93,30 +75,30 @@ export default function Home({ onStart, onStartTimer, onStartDifficult, onStartW
               랜덤 10문제 시작
             </Button>
 
-            {/* 난이도별 문제풀이 */}
+            {/* 과목별 문제풀이 */}
             <div className="border-t pt-4 mt-6">
-              <h3 className="text-lg font-semibold text-gray-700 mb-3 text-center">난이도별 문제풀이</h3>
+              <h3 className="text-lg font-semibold text-gray-700 mb-3 text-center">과목별 문제풀이</h3>
               <div className="grid grid-cols-3 gap-3">
                 <Button
                   onClick={() => onStart(undefined, 1)}
-                  className="bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-4 rounded-xl transition-colors duration-200 shadow-sm"
-                  data-testid="button-start-difficulty-1"
+                  className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-4 rounded-xl transition-colors duration-200 shadow-sm"
+                  data-testid="button-start-subject-1"
                 >
-                  😊 쉬움
+                  📘 1과목
                 </Button>
                 <Button
                   onClick={() => onStart(undefined, 2)}
-                  className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-4 rounded-xl transition-colors duration-200 shadow-sm"
-                  data-testid="button-start-difficulty-2"
+                  className="bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-4 rounded-xl transition-colors duration-200 shadow-sm"
+                  data-testid="button-start-subject-2"
                 >
-                  😐 보통
+                  📗 2과목
                 </Button>
                 <Button
                   onClick={() => onStart(undefined, 3)}
-                  className="bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-4 rounded-xl transition-colors duration-200 shadow-sm"
-                  data-testid="button-start-difficulty-3"
+                  className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-4 rounded-xl transition-colors duration-200 shadow-sm"
+                  data-testid="button-start-subject-3"
                 >
-                  😰 어려움
+                  📙 3과목
                 </Button>
               </div>
             </div>

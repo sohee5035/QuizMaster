@@ -232,7 +232,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Start a new session and return first question
   app.post("/api/session/start", async (req, res) => {
     try {
-      const { mode = "study", questionCount, difficulty } = req.body;
+      const { mode = "study", questionCount, subject } = req.body;
       
       const session = await storage.createSession({ mode });
       
@@ -281,11 +281,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(404).json({ message: "Not enough data for difficult questions mode" });
         }
       } else {
-        // Filter by difficulty if specified (only for non-difficult modes)
-        if (difficulty && difficulty >= 1 && difficulty <= 3) {
-          questions = questions.filter(q => q.difficulty === difficulty);
+        // Filter by subject if specified (only for non-difficult modes)
+        if (subject && subject >= 1 && subject <= 3) {
+          questions = questions.filter(q => q.subject === subject);
           if (questions.length === 0) {
-            return res.status(404).json({ message: `No questions available for difficulty ${difficulty}` });
+            return res.status(404).json({ message: `No questions available for subject ${subject}` });
           }
         }
       }

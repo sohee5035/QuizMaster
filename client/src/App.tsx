@@ -29,8 +29,8 @@ function AppContent() {
   const { toast } = useToast();
 
   const startSessionMutation = useMutation({
-    mutationFn: ({ questionCount, difficulty, mode }: { questionCount?: number; difficulty?: number; mode?: string }) => 
-      api.startSession(mode || "study", questionCount, difficulty),
+    mutationFn: ({ questionCount, subject, mode }: { questionCount?: number; subject?: number; mode?: string }) =>
+      api.startSession(mode || "study", questionCount, subject),
     onSuccess: (data) => {
       setSessionData(data);
       setAnswerResult(null);
@@ -186,8 +186,8 @@ function AppContent() {
     },
   });
 
-  const handleStart = (questionCount?: number, difficulty?: number) => {
-    startSessionMutation.mutate({ questionCount, difficulty });
+  const handleStart = (questionCount?: number, subject?: number) => {
+    startSessionMutation.mutate({ questionCount, subject });
   };
 
   const handleStartTimer = () => {
@@ -364,27 +364,25 @@ function AppContent() {
       </nav>
 
       {appState === "home" && (
-        <Home 
-          onStart={handleStart} 
-          onStartTimer={handleStartTimer} 
+        <Home
+          onStart={handleStart}
           onStartDifficult={() => startDifficultMutation.mutate()}
-          onStartWangsohee={() => startWangsoheeMutation.mutate()}
         />
       )}
 
       {/* 로딩 오버레이 */}
-      <LoadingOverlay 
+      <LoadingOverlay
         isLoading={
-          startSessionMutation.isPending || 
-          startDifficultMutation.isPending || 
+          startSessionMutation.isPending ||
+          startDifficultMutation.isPending ||
           startTimerMutation.isPending ||
           startWangsoheeMutation.isPending
-        } 
+        }
         text={
-          startDifficultMutation.isPending 
-            ? "어려운 문제들을 찾는 중..." 
-            : startTimerMutation.isPending 
-            ? "타이머 모드를 준비하는 중..." 
+          startDifficultMutation.isPending
+            ? "어려운 문제들을 찾는 중..."
+            : startTimerMutation.isPending
+            ? "타이머 모드를 준비하는 중..."
             : startWangsoheeMutation.isPending
             ? "왕소희 제작 문제를 준비하는 중..."
             : "문제를 준비하는 중..."
