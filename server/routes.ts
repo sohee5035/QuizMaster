@@ -6,6 +6,8 @@ import type { SessionResponse, AnswerResponse, ResultsResponse, QuestionWithChoi
 import multer from "multer";
 import csv from "csv-parser";
 import { Readable } from "stream";
+import bcrypt from "bcrypt";
+import session from "express-session";
 
 // Fisher-Yates shuffle algorithm
 function shuffle<T>(array: T[]): T[] {
@@ -23,7 +25,39 @@ const upload = multer({ storage: multer.memoryStorage() });
 // In-memory store for session question orders (simple implementation)
 const sessionQuestionOrders: Map<string, string[]> = new Map();
 
+// Extend Express Request to include session user
+declare module 'express-session' {
+  interface SessionData {
+    userId?: string;
+  }
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Session middleware
+  app.use(session({
+    secret: process.env.SESSION_SECRET || 'adsp-quiz-master-secret-key-change-in-production',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === 'production',
+      httpOnly: true,
+      maxAge: 1000 * 60 * 60 * 24 * 7 // 7 days
+    }
+  }));
+
+  // Authentication middleware
+  const requireAuth = async (req: any, res: any, next: any) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "로그인이 필요합니다." });
+    }
+    const user = await storage.getUserById(req.session.userId);
+    if (!user || user.status !== 'approved') {
+      return res.status(403).json({ message: "승인된 사용자만 접근 가능합니다." });
+    }
+    req.user = user;
+    next();
+  };
+
   // Questions count endpoint
   // Get all questions
   app.get("/api/questions", async (req, res) => {
@@ -940,6 +974,243 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     }
     next();
+  });
+
+  // =====================
+  // Authentication APIs
+  // =====================
+
+  // Register
+  app.post("/api/auth/register", async (req, res) => {
+    try {
+      const { email, password, name } = req.body;
+
+      if (!email || !password || !name) {
+        return res.status(400).json({ message: "모든 필드를 입력해주세요." });
+      }
+
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({ message: "이미 등록된 이메일입니다." });
+      }
+
+      // Hash password
+      const passwordHash = await bcrypt.hash(password, 10);
+
+      // Create user with pending status
+      const user = await storage.createUser({
+        email,
+        passwordHash,
+        name,
+        status: 'pending'
+      });
+
+      res.json({
+        message: "회원가입 완료! 관리자 승인 후 로그인할 수 있습니다.",
+        user: { id: user.id, email: user.email, name: user.name, status: user.status }
+      });
+    } catch (error) {
+      console.error("Registration error:", error);
+      res.status(500).json({ message: "회원가입 중 오류가 발생했습니다." });
+    }
+  });
+
+  // Login
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+
+      if (!email || !password) {
+        return res.status(400).json({ message: "이메일과 비밀번호를 입력해주세요." });
+      }
+
+      // Find user
+      const user = await storage.getUserByEmail(email);
+      if (!user) {
+        return res.status(401).json({ message: "이메일 또는 비밀번호가 일치하지 않습니다." });
+      }
+
+      // Check password
+      const passwordMatch = await bcrypt.compare(password, user.passwordHash);
+      if (!passwordMatch) {
+        return res.status(401).json({ message: "이메일 또는 비밀번호가 일치하지 않습니다." });
+      }
+
+      // Check approval status
+      if (user.status !== 'approved') {
+        if (user.status === 'pending') {
+          return res.status(403).json({ message: "관리자 승인 대기 중입니다." });
+        } else if (user.status === 'rejected') {
+          return res.status(403).json({ message: "가입이 거부되었습니다. 관리자에게 문의하세요." });
+        }
+      }
+
+      // Create session
+      req.session.userId = user.id;
+
+      res.json({
+        message: "로그인 성공",
+        user: { id: user.id, email: user.email, name: user.name, status: user.status }
+      });
+    } catch (error) {
+      console.error("Login error:", error);
+      res.status(500).json({ message: "로그인 중 오류가 발생했습니다." });
+    }
+  });
+
+  // Logout
+  app.post("/api/auth/logout", (req, res) => {
+    req.session.destroy((err) => {
+      if (err) {
+        return res.status(500).json({ message: "로그아웃 실패" });
+      }
+      res.json({ message: "로그아웃 성공" });
+    });
+  });
+
+  // Get current user
+  app.get("/api/auth/me", async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: "로그인되지 않음" });
+    }
+
+    try {
+      const user = await storage.getUserById(req.session.userId);
+      if (!user) {
+        req.session.destroy(() => {});
+        return res.status(401).json({ message: "사용자를 찾을 수 없음" });
+      }
+
+      res.json({
+        user: { id: user.id, email: user.email, name: user.name, status: user.status }
+      });
+    } catch (error) {
+      console.error("Get user error:", error);
+      res.status(500).json({ message: "사용자 정보 조회 실패" });
+    }
+  });
+
+  // =====================
+  // Bookmark APIs
+  // =====================
+
+  // Add bookmark
+  app.post("/api/bookmarks", requireAuth, async (req: any, res) => {
+    try {
+      const { questionId } = req.body;
+      const userId = req.session.userId;
+
+      if (!questionId) {
+        return res.status(400).json({ message: "문제 ID가 필요합니다." });
+      }
+
+      // Check if already bookmarked
+      const isBookmarked = await storage.isBookmarked(userId, questionId);
+      if (isBookmarked) {
+        return res.status(400).json({ message: "이미 북마크된 문제입니다." });
+      }
+
+      const bookmark = await storage.createBookmark({ userId, questionId });
+      res.json({ message: "북마크 추가 완료", bookmark });
+    } catch (error) {
+      console.error("Add bookmark error:", error);
+      res.status(500).json({ message: "북마크 추가 실패" });
+    }
+  });
+
+  // Remove bookmark
+  app.delete("/api/bookmarks/:questionId", requireAuth, async (req: any, res) => {
+    try {
+      const { questionId } = req.params;
+      const userId = req.session.userId;
+
+      await storage.deleteBookmark(userId, questionId);
+      res.json({ message: "북마크 제거 완료" });
+    } catch (error) {
+      console.error("Remove bookmark error:", error);
+      res.status(500).json({ message: "북마크 제거 실패" });
+    }
+  });
+
+  // Get user bookmarks
+  app.get("/api/bookmarks", requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const bookmarks = await storage.getUserBookmarks(userId);
+
+      // Get full question details for each bookmark
+      const bookmarkedQuestions = await Promise.all(
+        bookmarks.map(async (bookmark) => {
+          const question = await storage.getQuestion(bookmark.questionId);
+          return { ...bookmark, question };
+        })
+      );
+
+      res.json(bookmarkedQuestions);
+    } catch (error) {
+      console.error("Get bookmarks error:", error);
+      res.status(500).json({ message: "북마크 조회 실패" });
+    }
+  });
+
+  // Check if question is bookmarked
+  app.get("/api/bookmarks/:questionId/check", requireAuth, async (req: any, res) => {
+    try {
+      const { questionId } = req.params;
+      const userId = req.session.userId;
+
+      const isBookmarked = await storage.isBookmarked(userId, questionId);
+      res.json({ isBookmarked });
+    } catch (error) {
+      console.error("Check bookmark error:", error);
+      res.status(500).json({ message: "북마크 확인 실패" });
+    }
+  });
+
+  // =====================
+  // Admin User Management APIs
+  // =====================
+
+  // Get all users (admin only - simplified without separate admin check)
+  app.get("/api/admin/users", async (req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      res.json(users.map(u => ({
+        id: u.id,
+        email: u.email,
+        name: u.name,
+        status: u.status,
+        createdAt: u.createdAt
+      })));
+    } catch (error) {
+      console.error("Get users error:", error);
+      res.status(500).json({ message: "사용자 목록 조회 실패" });
+    }
+  });
+
+  // Approve user
+  app.put("/api/admin/users/:id/approve", async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.updateUserStatus(id, 'approved');
+      res.json({ message: "사용자 승인 완료" });
+    } catch (error) {
+      console.error("Approve user error:", error);
+      res.status(500).json({ message: "사용자 승인 실패" });
+    }
+  });
+
+  // Reject user
+  app.put("/api/admin/users/:id/reject", async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.updateUserStatus(id, 'rejected');
+      res.json({ message: "사용자 거부 완료" });
+    } catch (error) {
+      console.error("Reject user error:", error);
+      res.status(500).json({ message: "사용자 거부 실패" });
+    }
   });
 
   const httpServer = createServer(app);
