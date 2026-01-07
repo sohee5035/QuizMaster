@@ -161,7 +161,7 @@ export default function TimerMode({ questionData, onAnswer, onNext, onSkip }: Ti
               )}
             </div>
           </div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 leading-relaxed">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4 leading-relaxed whitespace-pre-wrap">
             {questionData.question.stem}
           </h2>
 
@@ -176,7 +176,7 @@ export default function TimerMode({ questionData, onAnswer, onNext, onSkip }: Ti
                   disabled={questionData.isAnswered}
                   data-testid={`choice-${choice.id}`}
                 >
-                  {choice.content}
+                  <span className="whitespace-pre-wrap">{choice.content}</span>
                 </button>
               ))
             ) : (
@@ -223,7 +223,7 @@ export default function TimerMode({ questionData, onAnswer, onNext, onSkip }: Ti
                 <h3 className="font-semibold text-blue-900 mb-2">
                   {questionData.isCorrect ? "정답입니다!" : "틀렸습니다."}
                 </h3>
-                <p className="text-blue-800 leading-relaxed">{questionData.explanation}</p>
+                <p className="text-blue-800 leading-relaxed whitespace-pre-wrap">{questionData.explanation}</p>
               </div>
             </div>
           </CardContent>

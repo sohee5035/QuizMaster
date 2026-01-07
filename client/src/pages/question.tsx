@@ -118,7 +118,10 @@ export default function Question({ sessionData, onAnswer, onNext, answerResult, 
       <Card className="mb-6 shadow-sm">
         <CardContent className="p-6">
           <div className="mb-6">
-            <p className="text-lg text-gray-900 leading-relaxed" data-testid="text-question-stem">
+            <p
+              className="text-lg text-gray-900 leading-relaxed whitespace-pre-wrap"
+              data-testid="text-question-stem"
+            >
               {question.stem}
             </p>
           </div>
@@ -134,7 +137,7 @@ export default function Question({ sessionData, onAnswer, onNext, answerResult, 
                   className={getChoiceButtonClass(choice.id, choice.isCorrect)}
                   data-testid={`button-choice-${choice.id}`}
                 >
-                  <span className={`font-medium ${
+                  <span className={`font-medium whitespace-pre-wrap ${
                     answerResult && selectedAnswer === choice.id && choice.isCorrect
                       ? "text-green-700"
                       : answerResult && selectedAnswer === choice.id && !choice.isCorrect
@@ -202,9 +205,8 @@ export default function Question({ sessionData, onAnswer, onNext, answerResult, 
         <Card className="mb-6 bg-gray-50 shadow-sm">
           <CardContent className="p-6">
             <div className="font-semibold text-gray-900 mb-3">해설</div>
-            <div 
-              className="text-gray-700 leading-relaxed"
-              style={{ whiteSpace: 'pre-wrap' }}
+            <div
+              className="text-gray-700 leading-relaxed whitespace-pre-wrap"
               data-testid="text-explanation"
             >
               {answerResult.explanation}

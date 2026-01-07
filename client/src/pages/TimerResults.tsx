@@ -112,7 +112,7 @@ export default function TimerResults({ results, onRestart, onHome }: TimerResult
                         {question.userAnswer === undefined ? "시간 초과" : "오답"}
                       </span>
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4 whitespace-pre-wrap">
                       {question.question.stem}
                     </h3>
                   </div>
@@ -139,7 +139,7 @@ export default function TimerResults({ results, onRestart, onHome }: TimerResult
                   {question.explanation && (
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                       <div className="font-semibold text-blue-700 mb-2">📖 해설</div>
-                      <div className="text-blue-800 leading-relaxed">
+                      <div className="text-blue-800 leading-relaxed whitespace-pre-wrap">
                         {question.explanation}
                       </div>
                     </div>

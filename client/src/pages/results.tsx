@@ -48,14 +48,13 @@ export default function Results({ results, onRestart, onHome }: ResultsProps) {
                     {result.isCorrect ? '정답' : '오답'}
                   </span>
                 </div>
-                <p className="text-gray-900 mb-3" data-testid={`text-question-${index}`}>
+                <p className="text-gray-900 mb-3 whitespace-pre-wrap" data-testid={`text-question-${index}`}>
                   {result.question.stem}
                 </p>
                 <div className="bg-gray-50 rounded p-3">
                   <div className="text-sm font-medium text-gray-600 mb-1">해설</div>
-                  <div 
-                    className="text-sm text-gray-700" 
-                    style={{ whiteSpace: 'pre-wrap' }}
+                  <div
+                    className="text-sm text-gray-700 whitespace-pre-wrap"
                     data-testid={`text-explanation-${index}`}
                   >
                     {result.question.explanation}
