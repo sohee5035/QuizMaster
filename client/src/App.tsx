@@ -342,11 +342,11 @@ function AppContent() {
       <nav className="bg-white shadow-sm border-b">
         <div className="max-w-4xl mx-auto px-4 py-3">
           <div className="flex justify-between items-center">
-            <h1 className="text-xl font-bold">🏆 KB 외환 마스터 👑</h1>
+            <h1 className="text-xl font-bold">📊 ADsP 자격증 마스터 🎯</h1>
             <div className="space-x-4">
               <button
                 onClick={handleHome}
-                className="text-yellow-600 hover:text-yellow-800"
+                className="text-blue-600 hover:text-blue-800"
                 data-testid="nav-home"
               >
                 홈
@@ -440,7 +440,7 @@ function AppContent() {
       {/* 하단 크레딧 */}
       <footer className="bg-white border-t py-4 mt-8">
         <div className="max-w-4xl mx-auto px-4 text-center">
-          <p className="text-sm text-gray-500">제작: 왕소희대리</p>
+          <p className="text-sm text-gray-500">ADsP 자격증 대비 학습 플랫폼</p>
         </div>
       </footer>
     </div>

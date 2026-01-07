@@ -13,6 +13,7 @@ export const questions = pgTable("questions", {
   source: text("source"),
   answer: boolean("answer"), // for OX questions
   author: text("author").default("default").notNull(), // 'default' or 'wangsohee'
+  category: text("category"), // ADsP 카테고리: 'data_understanding', 'data_planning', 'sql', 'statistics', 'programming'
 });
 
 export const choices = pgTable("choices", {
@@ -110,3 +111,14 @@ export type TimerResultsData = {
   correctAnswers: number;
   incorrectQuestions: TimerQuestionData[];
 };
+
+// ADsP 카테고리 정의
+export const CATEGORIES = {
+  data_understanding: "데이터 이해",
+  data_planning: "데이터 분석 기획",
+  sql: "SQL",
+  statistics: "통계분석",
+  programming: "R/Python",
+} as const;
+
+export type CategoryKey = keyof typeof CATEGORIES;

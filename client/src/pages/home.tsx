@@ -16,26 +16,28 @@ export default function Home({ onStart, onStartTimer, onStartDifficult, onStartW
         <CardContent className="p-8">
           <div className="text-center mb-8">
             <div className="mb-6">
-              <img 
-                src={mascotImage} 
-                alt="KB 외환 마스터 캐릭터" 
-                className="w-32 h-32 mx-auto rounded-full bg-orange-50 p-2"
+              <img
+                src={mascotImage}
+                alt="ADsP 자격증 마스터"
+                className="w-32 h-32 mx-auto rounded-full bg-blue-50 p-2"
               />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">🏆 KB 외환 마스터 👑</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">📊 ADsP 자격증 마스터 🎯</h1>
           </div>
 
-          <div className="bg-yellow-50 rounded-xl border border-yellow-200 p-6 mb-8">
+          <div className="bg-blue-50 rounded-xl border border-blue-200 p-6 mb-8">
             <div className="text-center mb-4">
-              <div className="text-lg font-semibold text-gray-900 mb-3">외환 마스터가 되는 그 날까지✨</div>
-              <div className="text-lg font-semibold text-gray-900 mb-1">📅 예선 25.08.27 (수) 17:00</div>
-              <div className="text-lg font-semibold text-gray-900 mb-4">📅 본선 25.09.12 (금) 16:00</div>
+              <div className="text-lg font-semibold text-gray-900 mb-3">데이터분석 준전문가 자격증 취득하기! ✨</div>
+              <div className="text-base font-semibold text-gray-800 mb-2">📚 시험 구성</div>
+              <div className="text-sm text-gray-700 mb-1">• 데이터 이해 (20점)</div>
+              <div className="text-sm text-gray-700 mb-1">• 데이터 분석 기획 (25점)</div>
+              <div className="text-sm text-gray-700 mb-3">• 데이터 분석: SQL, 통계, R/Python (55점)</div>
             </div>
-            <div className="border-t border-yellow-300 pt-4">
-              <div className="text-sm text-gray-700 mb-2">📘 본 페이지는 외환사업부 410의 출제 예상 문제를 보기와 순서가 랜덤하게 나오도록 설정한 것입니다.</div>
-              <div className="text-sm text-gray-700 mb-2">⚖️ 하단 난이도별 문제는 제작자인 제가 느끼는 난이도이니, 참고해주세요~!</div>
+            <div className="border-t border-blue-300 pt-4">
+              <div className="text-sm text-gray-700 mb-2">📘 본 페이지는 ADsP 시험 대비 문제를 보기와 순서가 랜덤하게 나오도록 설정한 것입니다.</div>
+              <div className="text-sm text-gray-700 mb-2">⏱️ 실제 시험: 100분 / 100문제 (문제당 평균 1분)</div>
               <div className="text-sm font-bold text-gray-800 mb-2">🏆 타이머모드는 정말 실전처럼 연습할 수 있어요! 추천드립니다 ^^</div>
-              <div className="text-sm text-gray-700">😎 참고로 저도 문제 풀다가 모바일로 보기 편하게 한 번 만들어봤어요. 문제를 수기로 등록한지라, 오류가 있을수도 있습니다 ㅎㅎ 오류 발견하시면 왕소희대리 앞으로 연락주세요!</div>
+              <div className="text-sm text-gray-700">😎 문제를 등록하면서 오류가 있을 수 있습니다. 발견 시 제보 부탁드려요!</div>
             </div>
           </div>
 
@@ -53,23 +55,23 @@ export default function Home({ onStart, onStartTimer, onStartDifficult, onStartW
               className="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-4 px-6 rounded-xl transition-colors duration-200 shadow-sm"
               data-testid="button-start-timer-mode"
             >
-              ⚡ 타이머 모드 (10초 제한) ⚡
+              ⚡ 타이머 모드 (문제당 60초) ⚡
             </Button>
-            
+
             <Button
               onClick={onStartDifficult}
               className="w-full bg-purple-500 hover:bg-purple-600 text-white font-semibold py-4 px-6 rounded-xl transition-colors duration-200 shadow-sm"
               data-testid="button-start-difficult"
             >
-              🤔 남들은 뭘 많이 틀렸을까? (TOP 20)
+              🤔 많이 틀린 문제 TOP 20
             </Button>
-            
+
             <Button
               onClick={onStartWangsohee}
               className="w-full bg-pink-500 hover:bg-pink-600 text-white font-semibold py-4 px-6 rounded-xl transition-colors duration-200 shadow-sm"
               data-testid="button-start-wangsohee"
             >
-              👑 왕소희 제작 문제 풀어보기 👑
+              📝 직접 제작 문제 풀어보기
             </Button>
             
             <Button
