@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import mascotImage from "@assets/Adobe Express 2025-08-21 12시 40분 8초_1755747624195.png";
 
 interface HomeProps {
   onStart: (questionCount?: number, difficulty?: number) => void;
@@ -15,27 +14,39 @@ export default function Home({ onStart, onStartTimer, onStartDifficult, onStartW
       <Card className="mt-8 shadow-sm">
         <CardContent className="p-8">
           <div className="text-center mb-8">
-            <div className="mb-6">
-              <img
-                src={mascotImage}
-                alt="ADsP 자격증 마스터"
-                className="w-32 h-32 mx-auto rounded-full bg-blue-50 p-2"
-              />
-            </div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">📊 ADsP 자격증 마스터 🎯</h1>
           </div>
 
           <div className="bg-blue-50 rounded-xl border border-blue-200 p-6 mb-8">
             <div className="text-center mb-4">
-              <div className="text-lg font-semibold text-gray-900 mb-3">데이터분석 준전문가 자격증 취득하기! ✨</div>
-              <div className="text-base font-semibold text-gray-800 mb-2">📚 시험 구성</div>
-              <div className="text-sm text-gray-700 mb-1">• 데이터 이해 (20점)</div>
-              <div className="text-sm text-gray-700 mb-1">• 데이터 분석 기획 (25점)</div>
-              <div className="text-sm text-gray-700 mb-3">• 데이터 분석: SQL, 통계, R/Python (55점)</div>
+              <div className="text-lg font-bold text-gray-900 mb-4">📊 ADsP 시험 구성</div>
+
+              <div className="text-left space-y-3 mb-4">
+                <div className="bg-white rounded-lg p-3">
+                  <div className="font-semibold text-gray-800">과목 구성:</div>
+                  <div className="text-sm text-gray-700 mt-1">• 1과목: 데이터 이해 (10문항)</div>
+                  <div className="text-sm text-gray-700">• 2과목: 데이터 분석 기획 (10문항)</div>
+                  <div className="text-sm text-gray-700">• 3과목: 데이터 분석 (30문항)</div>
+                </div>
+
+                <div className="bg-white rounded-lg p-3">
+                  <div className="font-semibold text-gray-800">시험 정보:</div>
+                  <div className="text-sm text-gray-700 mt-1">• 총 문항 수: 50문항</div>
+                  <div className="text-sm text-gray-700">• 시험 시간: 100분</div>
+                  <div className="text-sm text-gray-700">• 문제 유형: 4지선다형 객관식</div>
+                </div>
+
+                <div className="bg-white rounded-lg p-3">
+                  <div className="font-semibold text-gray-800">합격 기준:</div>
+                  <div className="text-sm text-gray-700 mt-1">• 과목당 40점 이상 (과목별 과락 기준)</div>
+                  <div className="text-sm text-gray-700">• 전체 평균 60점 이상</div>
+                  <div className="text-sm font-bold text-blue-600 mt-2">• 각 문항당 2점! 총점 100점 만점</div>
+                </div>
+              </div>
             </div>
+
             <div className="border-t border-blue-300 pt-4">
               <div className="text-sm text-gray-700 mb-2">📘 본 페이지는 ADsP 시험 대비 문제를 보기와 순서가 랜덤하게 나오도록 설정한 것입니다.</div>
-              <div className="text-sm text-gray-700 mb-2">⏱️ 실제 시험: 100분 / 100문제 (문제당 평균 1분)</div>
               <div className="text-sm font-bold text-gray-800 mb-2">🏆 타이머모드는 정말 실전처럼 연습할 수 있어요! 추천드립니다 ^^</div>
               <div className="text-sm text-gray-700">😎 문제를 등록하면서 오류가 있을 수 있습니다. 발견 시 제보 부탁드려요!</div>
             </div>
