@@ -1,7 +1,7 @@
-import { type Question, type Choice, type Session, type Response, type PageView, type InsertQuestion, type InsertChoice, type InsertSession, type InsertResponse, type InsertPageView } from "@shared/schema";
+import { type Question, type Choice, type Session, type Response, type PageView, type User, type Bookmark, type InsertQuestion, type InsertChoice, type InsertSession, type InsertResponse, type InsertPageView, type InsertUser, type InsertBookmark } from "@shared/schema";
 import { database as db, isDbConnected } from "./db";
-import { questions, choices, sessions, responses, pageViews } from "@shared/schema";
-import { eq, sql, gte } from "drizzle-orm";
+import { questions, choices, sessions, responses, pageViews, users, bookmarks } from "@shared/schema";
+import { eq, sql, gte, and } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -32,6 +32,19 @@ export interface IStorage {
   getTotalUniqueVisitors(): Promise<number>;
   getVisitorStatsByIP(): Promise<{ipAddress: string; visitCount: number; lastVisitAt: Date}[]>;
   
+  // Users
+  createUser(user: InsertUser): Promise<User>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  getUserById(id: string): Promise<User | undefined>;
+  getAllUsers(): Promise<User[]>;
+  updateUserStatus(id: string, status: string): Promise<void>;
+
+  // Bookmarks
+  createBookmark(bookmark: InsertBookmark): Promise<Bookmark>;
+  deleteBookmark(userId: string, questionId: string): Promise<void>;
+  getUserBookmarks(userId: string): Promise<Bookmark[]>;
+  isBookmarked(userId: string, questionId: string): Promise<boolean>;
+
   // Utility
   deleteQuestion(questionId: string): Promise<void>;
   clearAllData(): Promise<void>;
@@ -241,8 +254,66 @@ export class DatabaseStorage implements IStorage {
     }));
   }
 
+  // User methods
+  async createUser(user: InsertUser): Promise<User> {
+    const id = randomUUID();
+    const newUser = { id, ...user };
+    await db.insert(users).values(newUser);
+    return { ...newUser, createdAt: new Date() };
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const result = await db.select().from(users).where(eq(users.email, email));
+    return result[0];
+  }
+
+  async getUserById(id: string): Promise<User | undefined> {
+    const result = await db.select().from(users).where(eq(users.id, id));
+    return result[0];
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users);
+  }
+
+  async updateUserStatus(id: string, status: string): Promise<void> {
+    await db.update(users).set({ status }).where(eq(users.id, id));
+  }
+
+  // Bookmark methods
+  async createBookmark(bookmark: InsertBookmark): Promise<Bookmark> {
+    const id = randomUUID();
+    const newBookmark = { id, ...bookmark };
+    await db.insert(bookmarks).values(newBookmark);
+    return { ...newBookmark, createdAt: new Date() };
+  }
+
+  async deleteBookmark(userId: string, questionId: string): Promise<void> {
+    await db.delete(bookmarks).where(
+      and(
+        eq(bookmarks.userId, userId),
+        eq(bookmarks.questionId, questionId)
+      )
+    );
+  }
+
+  async getUserBookmarks(userId: string): Promise<Bookmark[]> {
+    return await db.select().from(bookmarks).where(eq(bookmarks.userId, userId));
+  }
+
+  async isBookmarked(userId: string, questionId: string): Promise<boolean> {
+    const result = await db.select().from(bookmarks).where(
+      and(
+        eq(bookmarks.userId, userId),
+        eq(bookmarks.questionId, questionId)
+      )
+    );
+    return result.length > 0;
+  }
+
   async deleteQuestion(questionId: string): Promise<void> {
     // 외래키 제약으로 인해 순서대로 삭제
+    await db.delete(bookmarks).where(eq(bookmarks.questionId, questionId));
     await db.delete(responses).where(eq(responses.questionId, questionId));
     await db.delete(choices).where(eq(choices.questionId, questionId));
     await db.delete(questions).where(eq(questions.id, questionId));
@@ -250,10 +321,12 @@ export class DatabaseStorage implements IStorage {
 
   async clearAllData(): Promise<void> {
     // 외래키 제약으로 인해 순서대로 삭제
+    await db.delete(bookmarks);
     await db.delete(responses);
     await db.delete(sessions);
     await db.delete(choices);
     await db.delete(questions);
+    await db.delete(users);
     await db.delete(pageViews);
   }
 }
@@ -264,6 +337,8 @@ export class MemStorage implements IStorage {
   private sessions: Map<string, Session>;
   private responses: Map<string, Response>;
   private pageViews: Map<string, PageView>;
+  private users: Map<string, User>;
+  private bookmarks: Map<string, Bookmark>;
 
   constructor() {
     this.questions = new Map();
@@ -271,6 +346,8 @@ export class MemStorage implements IStorage {
     this.sessions = new Map();
     this.responses = new Map();
     this.pageViews = new Map();
+    this.users = new Map();
+    this.bookmarks = new Map();
     
     this.seedData();
   }
@@ -485,16 +562,83 @@ export class MemStorage implements IStorage {
   async deleteQuestion(questionId: string): Promise<void> {
     // Delete the question
     this.questions.delete(questionId);
-    
+
     // Delete all choices for this question
     const choicesToDelete = Array.from(this.choices.values())
       .filter(choice => choice.questionId === questionId);
     choicesToDelete.forEach(choice => this.choices.delete(choice.id));
-    
+
     // Delete all responses for this question
     const responsesToDelete = Array.from(this.responses.values())
       .filter(response => response.questionId === questionId);
     responsesToDelete.forEach(response => this.responses.delete(response.id));
+
+    // Delete all bookmarks for this question
+    const bookmarksToDelete = Array.from(this.bookmarks.values())
+      .filter(bookmark => bookmark.questionId === questionId);
+    bookmarksToDelete.forEach(bookmark => this.bookmarks.delete(bookmark.id));
+  }
+
+  // User methods
+  async createUser(user: InsertUser): Promise<User> {
+    const id = randomUUID();
+    const newUser: User = {
+      id,
+      ...user,
+      createdAt: new Date(),
+    };
+    this.users.set(id, newUser);
+    return newUser;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(u => u.email === email);
+  }
+
+  async getUserById(id: string): Promise<User | undefined> {
+    return this.users.get(id);
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return Array.from(this.users.values());
+  }
+
+  async updateUserStatus(id: string, status: string): Promise<void> {
+    const user = this.users.get(id);
+    if (user) {
+      user.status = status;
+      this.users.set(id, user);
+    }
+  }
+
+  // Bookmark methods
+  async createBookmark(bookmark: InsertBookmark): Promise<Bookmark> {
+    const id = randomUUID();
+    const newBookmark: Bookmark = {
+      id,
+      ...bookmark,
+      createdAt: new Date(),
+    };
+    this.bookmarks.set(id, newBookmark);
+    return newBookmark;
+  }
+
+  async deleteBookmark(userId: string, questionId: string): Promise<void> {
+    const bookmarkToDelete = Array.from(this.bookmarks.values())
+      .find(b => b.userId === userId && b.questionId === questionId);
+    if (bookmarkToDelete) {
+      this.bookmarks.delete(bookmarkToDelete.id);
+    }
+  }
+
+  async getUserBookmarks(userId: string): Promise<Bookmark[]> {
+    return Array.from(this.bookmarks.values())
+      .filter(b => b.userId === userId);
+  }
+
+  async isBookmarked(userId: string, questionId: string): Promise<boolean> {
+    return Array.from(this.bookmarks.values())
+      .some(b => b.userId === userId && b.questionId === questionId);
   }
 
   async clearAllData(): Promise<void> {
@@ -503,6 +647,8 @@ export class MemStorage implements IStorage {
     this.choices.clear();
     this.questions.clear();
     this.pageViews.clear();
+    this.users.clear();
+    this.bookmarks.clear();
   }
 }
 
