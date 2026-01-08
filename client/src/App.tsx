@@ -15,9 +15,11 @@ import TimerMode from "./pages/TimerMode.tsx";
 import TimerResults from "./pages/TimerResults.tsx";
 import TimerSetup from "./pages/TimerSetup";
 import SessionHistory from "./pages/SessionHistory";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 import type { SessionResponse, AnswerResponse, ResultsResponse, TimerQuestionData, TimerResultsData } from "@shared/schema";
 
-type AppState = "home" | "question" | "results" | "admin" | "timer" | "timer-results" | "timer-setup" | "history";
+type AppState = "home" | "question" | "results" | "admin" | "timer" | "timer-results" | "timer-setup" | "history" | "login" | "signup";
 
 function AppContent() {
   const [appState, setAppState] = useState<AppState>("home");
@@ -28,6 +30,24 @@ function AppContent() {
   const [currentTimerIndex, setCurrentTimerIndex] = useState(0);
   const [timerResults, setTimerResults] = useState<TimerResultsData | null>(null);
   const { toast } = useToast();
+
+  // Check if user is logged in
+  const { data: authData, refetch: refetchAuth } = useQuery({
+    queryKey: ['/api/auth/me'],
+    queryFn: async () => {
+      try {
+        const response = await fetch("/api/auth/me");
+        if (!response.ok) return null;
+        return response.json();
+      } catch (error) {
+        return null;
+      }
+    },
+    retry: false,
+  });
+
+  const isLoggedIn = authData && authData.user;
+  const currentUser = authData?.user;
 
   const startSessionMutation = useMutation({
     mutationFn: ({ questionCount, subject, mode, round }: { questionCount?: number; subject?: number; mode?: string; round?: number }) =>
@@ -188,6 +208,16 @@ function AppContent() {
   });
 
   const handleStart = (questionCount?: number, subject?: number, round?: number) => {
+    // Check if user is logged in
+    if (!isLoggedIn) {
+      toast({
+        title: "로그인 필요",
+        description: "문제를 풀려면 로그인이 필요합니다.",
+        variant: "destructive",
+      });
+      setAppState("login");
+      return;
+    }
     startSessionMutation.mutate({ questionCount, subject, round });
   };
 
@@ -346,14 +376,45 @@ function AppContent() {
     setAppState("results");
   };
 
+  const handleLogin = () => {
+    setAppState("login");
+  };
+
+  const handleSignup = () => {
+    setAppState("signup");
+  };
+
+  const handleLoginSuccess = () => {
+    refetchAuth();
+    setAppState("home");
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      toast({
+        title: "로그아웃 완료",
+        description: "안전하게 로그아웃되었습니다.",
+      });
+      refetchAuth();
+      setAppState("home");
+    } catch (error) {
+      toast({
+        title: "오류",
+        description: "로그아웃 중 오류가 발생했습니다.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 상단 네비게이션 */}
       <nav className="bg-white shadow-sm border-b">
         <div className="max-w-4xl mx-auto px-4 py-3">
           <div className="flex justify-between items-center">
-            <h1 className="text-xl font-bold">📊 ADsP 자격증 마스터 🎯</h1>
-            <div className="space-x-4">
+            <h1 className="text-xl font-bold cursor-pointer" onClick={handleHome}>📊 ADsP 자격증 마스터 🎯</h1>
+            <div className="flex items-center space-x-4">
               <button
                 onClick={handleHome}
                 className="text-blue-600 hover:text-blue-800"
@@ -375,6 +436,40 @@ function AppContent() {
               >
                 관리자
               </button>
+
+              <div className="border-l border-gray-300 h-6 mx-2"></div>
+
+              {isLoggedIn ? (
+                <>
+                  <span className="text-sm text-gray-700">
+                    👤 {currentUser.name}님
+                  </span>
+                  <button
+                    onClick={handleLogout}
+                    className="text-red-600 hover:text-red-800 text-sm"
+                    data-testid="nav-logout"
+                  >
+                    로그아웃
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={handleLogin}
+                    className="text-blue-600 hover:text-blue-800 font-semibold"
+                    data-testid="nav-login"
+                  >
+                    로그인
+                  </button>
+                  <button
+                    onClick={handleSignup}
+                    className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg font-semibold"
+                    data-testid="nav-signup"
+                  >
+                    회원가입
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -451,6 +546,21 @@ function AppContent() {
       {appState === "history" && (
         <SessionHistory
           onViewResults={handleViewHistoryResults}
+          onHome={handleHome}
+        />
+      )}
+
+      {appState === "login" && (
+        <Login
+          onSignup={handleSignup}
+          onHome={handleHome}
+          onLoginSuccess={handleLoginSuccess}
+        />
+      )}
+
+      {appState === "signup" && (
+        <Signup
+          onLogin={handleLogin}
           onHome={handleHome}
         />
       )}

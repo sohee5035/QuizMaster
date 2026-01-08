@@ -607,6 +607,228 @@ function ManageQuestionsCard() {
   );
 }
 
+// 회원 관리 컴포넌트
+function UserManagementCard() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const { data: usersData, isLoading } = useQuery({
+    queryKey: ['/api/admin/users'],
+    queryFn: async () => {
+      const response = await fetch("/api/admin/users");
+      return response.json();
+    }
+  });
+
+  const approveMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const response = await fetch(`/api/admin/users/${userId}/approve`, {
+        method: "PUT",
+      });
+      if (!response.ok) throw new Error("Failed to approve user");
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "승인 완료",
+        description: "사용자가 승인되었습니다.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+    },
+    onError: () => {
+      toast({
+        title: "오류",
+        description: "사용자 승인에 실패했습니다.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const rejectMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const response = await fetch(`/api/admin/users/${userId}/reject`, {
+        method: "PUT",
+      });
+      if (!response.ok) throw new Error("Failed to reject user");
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "거부 완료",
+        description: "사용자가 거부되었습니다.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+    },
+    onError: () => {
+      toast({
+        title: "오류",
+        description: "사용자 거부에 실패했습니다.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const users = usersData?.users || [];
+  const pendingUsers = users.filter((u: any) => u.status === 'pending');
+  const approvedUsers = users.filter((u: any) => u.status === 'approved');
+  const rejectedUsers = users.filter((u: any) => u.status === 'rejected');
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return <Badge className="bg-yellow-500">대기 중</Badge>;
+      case 'approved':
+        return <Badge className="bg-green-500">승인됨</Badge>;
+      case 'rejected':
+        return <Badge className="bg-red-500">거부됨</Badge>;
+      default:
+        return <Badge>{status}</Badge>;
+    }
+  };
+
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleString('ko-KR');
+  };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="p-8 flex justify-center">
+          <Spinner />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>회원 관리</CardTitle>
+        <CardDescription>
+          가입 신청 승인 및 회원 관리
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {users.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            등록된 회원이 없습니다.
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {/* 대기 중인 회원 */}
+            {pendingUsers.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold mb-3 text-yellow-700">
+                  ⏳ 승인 대기 중 ({pendingUsers.length}명)
+                </h3>
+                <div className="space-y-2">
+                  {pendingUsers.map((user: any) => (
+                    <div key={user.id} className="border border-yellow-200 rounded-lg p-4 bg-yellow-50">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="font-semibold">{user.name}</span>
+                            {getStatusBadge(user.status)}
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            <div>📧 {user.email}</div>
+                            <div>📅 신청: {formatDate(user.createdAt)}</div>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            className="bg-green-600 hover:bg-green-700"
+                            onClick={() => approveMutation.mutate(user.id)}
+                            disabled={approveMutation.isPending}
+                          >
+                            ✓ 승인
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => rejectMutation.mutate(user.id)}
+                            disabled={rejectMutation.isPending}
+                          >
+                            ✗ 거부
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 승인된 회원 */}
+            {approvedUsers.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold mb-3 text-green-700">
+                  ✅ 승인된 회원 ({approvedUsers.length}명)
+                </h3>
+                <div className="space-y-2">
+                  {approvedUsers.map((user: any) => (
+                    <div key={user.id} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-semibold">{user.name}</span>
+                            {getStatusBadge(user.status)}
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            📧 {user.email}
+                          </div>
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {formatDate(user.createdAt)}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 거부된 회원 */}
+            {rejectedUsers.length > 0 && (
+              <details className="cursor-pointer">
+                <summary className="text-lg font-semibold mb-3 text-red-700">
+                  ❌ 거부된 회원 ({rejectedUsers.length}명)
+                </summary>
+                <div className="space-y-2 mt-3">
+                  {rejectedUsers.map((user: any) => (
+                    <div key={user.id} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-semibold">{user.name}</span>
+                            {getStatusBadge(user.status)}
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            📧 {user.email}
+                          </div>
+                        </div>
+                        <Button
+                          size="sm"
+                          className="bg-green-600 hover:bg-green-700"
+                          onClick={() => approveMutation.mutate(user.id)}
+                          disabled={approveMutation.isPending}
+                        >
+                          ✓ 승인
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </details>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function Admin() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -903,8 +1125,9 @@ export default function Admin() {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="stats" className="w-full">
-              <TabsList className="grid w-full grid-cols-5">
+              <TabsList className="grid w-full grid-cols-6">
                 <TabsTrigger value="stats">조회수 통계</TabsTrigger>
+                <TabsTrigger value="users">회원 관리</TabsTrigger>
                 <TabsTrigger value="manage">문제 관리</TabsTrigger>
                 <TabsTrigger value="ox">OX 문제</TabsTrigger>
                 <TabsTrigger value="mcq">사지선다</TabsTrigger>
@@ -916,6 +1139,10 @@ export default function Admin() {
                 <VisitorStatsCard />
                 <ModeStatsCard />
                 <QuestionStatsCard />
+              </TabsContent>
+
+              <TabsContent value="users" className="space-y-4">
+                <UserManagementCard />
               </TabsContent>
 
               <TabsContent value="manage" className="space-y-4">
