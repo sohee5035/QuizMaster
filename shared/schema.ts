@@ -25,23 +25,6 @@ export const choices = pgTable("choices", {
   isCorrect: boolean("is_correct").notNull(),
 });
 
-export const sessions = pgTable("sessions", {
-  id: text("id").primaryKey(),
-  mode: text("mode").notNull(), // 'study', 'mock', 'review', 'wangsohee'
-  startedAt: timestamp("started_at").defaultNow(),
-  endedAt: timestamp("ended_at"),
-});
-
-export const responses = pgTable("responses", {
-  id: text("id").primaryKey(),
-  sessionId: text("session_id").notNull().references(() => sessions.id),
-  questionId: text("question_id").notNull().references(() => questions.id),
-  choiceId: text("choice_id").references(() => choices.id),
-  selectedBoolean: boolean("selected_boolean"),
-  isCorrect: boolean("is_correct").notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
 export const pageViews = pgTable("page_views", {
   id: text("id").primaryKey(),
   ipAddress: text("ip_address").notNull(),
@@ -56,6 +39,24 @@ export const users = pgTable("users", {
   passwordHash: text("password_hash").notNull(),
   name: text("name").notNull(),
   status: text("status").notNull().default("pending"), // 'pending', 'approved', 'rejected'
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const sessions = pgTable("sessions", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").references(() => users.id), // nullable, only for logged-in users
+  mode: text("mode").notNull(), // 'study', 'mock', 'review', 'wangsohee'
+  startedAt: timestamp("started_at").defaultNow(),
+  endedAt: timestamp("ended_at"),
+});
+
+export const responses = pgTable("responses", {
+  id: text("id").primaryKey(),
+  sessionId: text("session_id").notNull().references(() => sessions.id),
+  questionId: text("question_id").notNull().references(() => questions.id),
+  choiceId: text("choice_id").references(() => choices.id),
+  selectedBoolean: boolean("selected_boolean"),
+  isCorrect: boolean("is_correct").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

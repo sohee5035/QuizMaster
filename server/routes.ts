@@ -96,13 +96,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get session history (completed sessions only)
+  // Get session history (completed sessions only, for logged-in user)
   app.get("/api/sessions", async (req, res) => {
     try {
+      const userId = (req.session as any).userId;
+
+      // If user is not logged in, return empty array
+      if (!userId) {
+        return res.json({ sessions: [] });
+      }
+
       const allSessions = await storage.getAllSessions();
-      // Filter to only completed sessions and sort by endedAt (most recent first)
+      // Filter to only completed sessions for this user and sort by endedAt (most recent first)
       const completedSessions = allSessions
-        .filter(s => s.endedAt !== null)
+        .filter(s => s.endedAt !== null && s.userId === userId)
         .sort((a, b) => {
           const dateA = a.endedAt ? new Date(a.endedAt).getTime() : 0;
           const dateB = b.endedAt ? new Date(b.endedAt).getTime() : 0;
@@ -135,14 +142,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get session detail with full results
+  // Get session detail with full results (only for own sessions or anonymous sessions)
   app.get("/api/sessions/:id", async (req, res) => {
     try {
       const sessionId = req.params.id;
+      const userId = (req.session as any).userId;
       const session = await storage.getSession(sessionId);
 
       if (!session) {
         return res.status(404).json({ message: "세션을 찾을 수 없습니다." });
+      }
+
+      // Check authorization: user must be logged in and session must belong to them
+      // OR session must have no userId (anonymous session - for backward compatibility)
+      if (session.userId && session.userId !== userId) {
+        return res.status(403).json({ message: "권한이 없습니다." });
       }
 
       const responses = await storage.getResponsesForSession(sessionId);
@@ -369,8 +383,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/session/start", async (req, res) => {
     try {
       const { mode = "study", questionCount, subject, round } = req.body;
-      
-      const session = await storage.createSession({ mode });
+
+      // Save userId if user is logged in
+      const userId = (req.session as any).userId || null;
+      const session = await storage.createSession({ mode, userId });
       
       // Get questions based on mode
       let questions;

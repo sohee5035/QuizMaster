@@ -21,6 +21,20 @@ interface SessionHistoryProps {
 }
 
 export default function SessionHistory({ onViewResults, onHome }: SessionHistoryProps) {
+  // Check if user is logged in
+  const { data: authData } = useQuery({
+    queryKey: ['/api/auth/me'],
+    queryFn: async () => {
+      try {
+        const response = await apiRequest("GET", "/api/auth/me");
+        return response.json();
+      } catch (error) {
+        return null;
+      }
+    },
+    retry: false,
+  });
+
   const { data, isLoading, error } = useQuery({
     queryKey: ['/api/sessions'],
     queryFn: async () => {
@@ -28,6 +42,8 @@ export default function SessionHistory({ onViewResults, onHome }: SessionHistory
       return response.json();
     }
   });
+
+  const isLoggedIn = authData && authData.user;
 
   const handleViewSession = async (sessionId: string) => {
     try {
@@ -104,9 +120,30 @@ export default function SessionHistory({ onViewResults, onHome }: SessionHistory
           </div>
 
           {sessions.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
-              <p className="text-lg mb-2">아직 완료한 학습 세션이 없습니다.</p>
-              <p className="text-sm">문제를 풀고 완료하면 여기에 기록이 남습니다.</p>
+            <div className="text-center py-12">
+              {!isLoggedIn ? (
+                <div className="text-gray-500">
+                  <p className="text-lg font-semibold mb-3 text-gray-700">🔒 로그인이 필요한 기능입니다</p>
+                  <p className="text-sm mb-4">학습 이력을 저장하고 확인하려면 로그인이 필요합니다.</p>
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-md mx-auto">
+                    <p className="text-sm text-blue-800 mb-2">💡 로그인하면 다음을 할 수 있습니다:</p>
+                    <ul className="text-sm text-blue-700 text-left space-y-1">
+                      <li>• 학습 기록 자동 저장</li>
+                      <li>• 과거 세션 다시 보기</li>
+                      <li>• 문제 북마크 기능</li>
+                      <li>• 여러 기기에서 동기화</li>
+                    </ul>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-4">
+                    회원가입은 관리자 승인 후 이용 가능합니다.
+                  </p>
+                </div>
+              ) : (
+                <div className="text-gray-500">
+                  <p className="text-lg mb-2">아직 완료한 학습 세션이 없습니다.</p>
+                  <p className="text-sm">로그인한 상태에서 문제를 풀고 완료하면 여기에 기록이 남습니다.</p>
+                </div>
+              )}
             </div>
           ) : (
             <div className="space-y-4">
