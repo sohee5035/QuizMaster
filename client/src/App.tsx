@@ -29,6 +29,7 @@ function AppContent() {
   const [timerQuestions, setTimerQuestions] = useState<TimerQuestionData[]>([]);
   const [currentTimerIndex, setCurrentTimerIndex] = useState(0);
   const [timerResults, setTimerResults] = useState<TimerResultsData | null>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { toast } = useToast();
 
   // Check if user is logged in
@@ -410,68 +411,131 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 상단 네비게이션 */}
-      <nav className="bg-white shadow-sm border-b">
+      <nav className="bg-white shadow-sm border-b relative">
         <div className="max-w-4xl mx-auto px-4 py-3">
           <div className="flex justify-between items-center">
-            <h1 className="text-xl font-bold cursor-pointer" onClick={handleHome}>📊 ADsP 자격증 마스터 🎯</h1>
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={handleHome}
-                className="text-blue-600 hover:text-blue-800"
-                data-testid="nav-home"
-              >
-                홈
-              </button>
-              <button
-                onClick={handleHistory}
-                className="text-green-600 hover:text-green-800"
-                data-testid="nav-history"
-              >
-                학습 이력
-              </button>
-              <button
-                onClick={handleAdmin}
-                className="text-gray-600 hover:text-gray-800"
-                data-testid="nav-admin"
-              >
-                관리자
-              </button>
+            <h1
+              className="text-lg sm:text-xl font-bold cursor-pointer"
+              onClick={handleHome}
+            >
+              📊 ADsP 마스터
+            </h1>
 
-              <div className="border-l border-gray-300 h-6 mx-2"></div>
-
-              {isLoggedIn ? (
-                <>
-                  <span className="text-sm text-gray-700">
-                    👤 {currentUser.name}님
-                  </span>
-                  <button
-                    onClick={handleLogout}
-                    className="text-red-600 hover:text-red-800 text-sm"
-                    data-testid="nav-logout"
-                  >
-                    로그아웃
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    onClick={handleLogin}
-                    className="text-blue-600 hover:text-blue-800 font-semibold"
-                    data-testid="nav-login"
-                  >
-                    로그인
-                  </button>
-                  <button
-                    onClick={handleSignup}
-                    className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg font-semibold"
-                    data-testid="nav-signup"
-                  >
-                    회원가입
-                  </button>
-                </>
-              )}
-            </div>
+            {/* 햄버거 버튼 */}
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              aria-label="메뉴"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                {isMenuOpen ? (
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                ) : (
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                )}
+              </svg>
+            </button>
           </div>
+
+          {/* 드롭다운 메뉴 */}
+          {isMenuOpen && (
+            <div className="absolute top-full left-0 right-0 bg-white border-b shadow-lg z-50">
+              <div className="max-w-4xl mx-auto px-4 py-2">
+                <div className="flex flex-col space-y-2">
+                  <button
+                    onClick={() => {
+                      handleHome();
+                      setIsMenuOpen(false);
+                    }}
+                    className="text-left px-4 py-3 hover:bg-gray-50 rounded-lg text-blue-600 font-semibold"
+                    data-testid="nav-home"
+                  >
+                    🏠 홈
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleHistory();
+                      setIsMenuOpen(false);
+                    }}
+                    className="text-left px-4 py-3 hover:bg-gray-50 rounded-lg text-green-600 font-semibold"
+                    data-testid="nav-history"
+                  >
+                    📚 학습 이력
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleAdmin();
+                      setIsMenuOpen(false);
+                    }}
+                    className="text-left px-4 py-3 hover:bg-gray-50 rounded-lg text-gray-600 font-semibold"
+                    data-testid="nav-admin"
+                  >
+                    ⚙️ 관리자
+                  </button>
+
+                  <div className="border-t border-gray-200 my-2"></div>
+
+                  {isLoggedIn ? (
+                    <>
+                      <div className="px-4 py-2 bg-blue-50 rounded-lg">
+                        <span className="text-sm text-gray-700">
+                          👤 {currentUser.name}님
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => {
+                          handleLogout();
+                          setIsMenuOpen(false);
+                        }}
+                        className="text-left px-4 py-3 hover:bg-gray-50 rounded-lg text-red-600 font-semibold"
+                        data-testid="nav-logout"
+                      >
+                        🚪 로그아웃
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => {
+                          handleLogin();
+                          setIsMenuOpen(false);
+                        }}
+                        className="text-left px-4 py-3 hover:bg-gray-50 rounded-lg text-blue-600 font-semibold"
+                        data-testid="nav-login"
+                      >
+                        🔑 로그인
+                      </button>
+                      <button
+                        onClick={() => {
+                          handleSignup();
+                          setIsMenuOpen(false);
+                        }}
+                        className="text-left px-4 py-3 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold"
+                        data-testid="nav-signup"
+                      >
+                        ✨ 회원가입
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </nav>
 
