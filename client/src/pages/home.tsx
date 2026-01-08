@@ -1,12 +1,26 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { apiRequest } from "@/lib/queryClient";
 
 interface HomeProps {
-  onStart: (questionCount?: number, subject?: number) => void;
+  onStart: (questionCount?: number, subject?: number, round?: number) => void;
   onStartDifficult: () => void;
 }
 
 export default function Home({ onStart, onStartDifficult }: HomeProps) {
+  const [selectedRound, setSelectedRound] = useState<string>("");
+
+  // Fetch available rounds
+  const { data: roundsData } = useQuery({
+    queryKey: ['/api/rounds'],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/rounds");
+      return response.json();
+    }
+  });
   return (
     <div className="container mx-auto max-w-2xl p-6">
       <Card className="mt-8 shadow-sm">
@@ -96,6 +110,38 @@ export default function Home({ onStart, onStartDifficult }: HomeProps) {
                 </Button>
               </div>
             </div>
+
+            {/* 회차별 기출문제 */}
+            {roundsData && roundsData.rounds && roundsData.rounds.length > 0 && (
+              <div className="border-t pt-4 mt-6">
+                <h3 className="text-lg font-semibold text-gray-700 mb-3 text-center">📝 기출 회차 풀어보기</h3>
+                <div className="flex gap-3">
+                  <Select value={selectedRound} onValueChange={setSelectedRound}>
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="회차 선택" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {roundsData.rounds.map((round: number) => (
+                        <SelectItem key={round} value={String(round)}>
+                          {round}회차
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    onClick={() => {
+                      if (selectedRound) {
+                        onStart(undefined, undefined, parseInt(selectedRound));
+                      }
+                    }}
+                    disabled={!selectedRound}
+                    className="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    시작하기
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

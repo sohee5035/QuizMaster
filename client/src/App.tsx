@@ -29,8 +29,8 @@ function AppContent() {
   const { toast } = useToast();
 
   const startSessionMutation = useMutation({
-    mutationFn: ({ questionCount, subject, mode }: { questionCount?: number; subject?: number; mode?: string }) =>
-      api.startSession(mode || "study", questionCount, subject),
+    mutationFn: ({ questionCount, subject, mode, round }: { questionCount?: number; subject?: number; mode?: string; round?: number }) =>
+      api.startSession(mode || "study", questionCount, subject, round),
     onSuccess: (data) => {
       setSessionData(data);
       setAnswerResult(null);
@@ -186,8 +186,8 @@ function AppContent() {
     },
   });
 
-  const handleStart = (questionCount?: number, subject?: number) => {
-    startSessionMutation.mutate({ questionCount, subject });
+  const handleStart = (questionCount?: number, subject?: number, round?: number) => {
+    startSessionMutation.mutate({ questionCount, subject, round });
   };
 
   const handleStartTimer = () => {

@@ -15,6 +15,7 @@ export const questions = pgTable("questions", {
   author: text("author").default("default").notNull(), // 'default' or 'wangsohee'
   category: text("category"), // ADsP 카테고리: 'data_understanding', 'data_planning', 'sql', 'statistics', 'programming'
   subject: integer("subject"), // ADsP 과목: 1 (데이터 이해), 2 (데이터 분석 기획), 3 (데이터 분석)
+  round: integer("round"), // 시험 회차: 39, 40, 41 등
 });
 
 export const choices = pgTable("choices", {

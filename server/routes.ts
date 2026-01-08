@@ -80,6 +80,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get available rounds
+  app.get("/api/rounds", async (req, res) => {
+    try {
+      const questions = await storage.getQuestionsByAuthor("default");
+      const rounds = [...new Set(questions
+        .filter(q => q.round !== null && q.round !== undefined)
+        .map(q => q.round)
+      )].sort((a, b) => (b as number) - (a as number)); // Sort descending (newest first)
+
+      res.json({ rounds });
+    } catch (error) {
+      console.error('Rounds error:', error);
+      res.status(500).json({ message: "회차 조회 중 오류가 발생했습니다." });
+    }
+  });
+
   // Admin stats endpoint (before page view middleware)
   app.get("/api/admin/stats", async (req, res) => {
     try {
@@ -266,7 +282,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Start a new session and return first question
   app.post("/api/session/start", async (req, res) => {
     try {
-      const { mode = "study", questionCount, subject } = req.body;
+      const { mode = "study", questionCount, subject, round } = req.body;
       
       const session = await storage.createSession({ mode });
       
@@ -320,6 +336,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           questions = questions.filter(q => q.subject === subject);
           if (questions.length === 0) {
             return res.status(404).json({ message: `No questions available for subject ${subject}` });
+          }
+        }
+
+        // Filter by round if specified (only for non-difficult modes)
+        if (round) {
+          questions = questions.filter(q => q.round === round);
+          if (questions.length === 0) {
+            return res.status(404).json({ message: `${round}회차 문제가 없습니다.` });
           }
         }
       }

@@ -621,6 +621,7 @@ export default function Admin() {
     tags: "",
     difficulty: "",
     subject: "",
+    round: "",
     source: "",
     author: "default"
   });
@@ -638,6 +639,7 @@ export default function Admin() {
     tags: "",
     difficulty: "",
     subject: "",
+    round: "",
     source: "",
     author: "default"
   });
@@ -668,6 +670,7 @@ export default function Admin() {
         tags: "",
         difficulty: "",
         subject: "",
+        round: "",
         source: "",
         author: "default"
       });
@@ -683,6 +686,7 @@ export default function Admin() {
         tags: "",
         difficulty: "",
         subject: "",
+        round: "",
         source: "",
         author: "default"
       });
@@ -858,6 +862,7 @@ export default function Admin() {
       answer: oxForm.answer === "O",
       difficulty: oxForm.difficulty ? parseInt(oxForm.difficulty) : null,
       subject: oxForm.subject ? parseInt(oxForm.subject) : null,
+      round: oxForm.round ? parseInt(oxForm.round) : null,
     });
   };
 
@@ -871,6 +876,7 @@ export default function Admin() {
       tags: mcqForm.tags,
       difficulty: mcqForm.difficulty ? parseInt(mcqForm.difficulty) : null,
       subject: mcqForm.subject ? parseInt(mcqForm.subject) : null,
+      round: mcqForm.round ? parseInt(mcqForm.round) : null,
       source: mcqForm.source,
       author: mcqForm.author,
       choices: [
@@ -991,7 +997,7 @@ export default function Admin() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-4 gap-4">
                     <div>
                       <Label htmlFor="ox-subject">과목 (필수)</Label>
                       <Select value={oxForm.subject} onValueChange={(value) => setOxForm({...oxForm, subject: value})}>
@@ -1004,6 +1010,17 @@ export default function Admin() {
                           <SelectItem value="3">📙 3과목 (데이터 분석)</SelectItem>
                         </SelectContent>
                       </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="ox-round">회차</Label>
+                      <Input
+                        id="ox-round"
+                        type="number"
+                        value={oxForm.round}
+                        onChange={(e) => setOxForm({...oxForm, round: e.target.value})}
+                        placeholder="예: 39"
+                        data-testid="input-ox-round"
+                      />
                     </div>
                     <div>
                       <Label htmlFor="ox-difficulty">난이도</Label>
@@ -1166,7 +1183,7 @@ export default function Admin() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-4 gap-4">
                     <div>
                       <Label htmlFor="mcq-subject">과목 (필수)</Label>
                       <Select value={mcqForm.subject} onValueChange={(value) => setMcqForm({...mcqForm, subject: value})}>
@@ -1179,6 +1196,17 @@ export default function Admin() {
                           <SelectItem value="3">📙 3과목 (데이터 분석)</SelectItem>
                         </SelectContent>
                       </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="mcq-round">회차</Label>
+                      <Input
+                        id="mcq-round"
+                        type="number"
+                        value={mcqForm.round}
+                        onChange={(e) => setMcqForm({...mcqForm, round: e.target.value})}
+                        placeholder="예: 39"
+                        data-testid="input-mcq-round"
+                      />
                     </div>
                     <div>
                       <Label htmlFor="mcq-difficulty">난이도</Label>
