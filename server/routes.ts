@@ -96,6 +96,92 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get session history (completed sessions only)
+  app.get("/api/sessions", async (req, res) => {
+    try {
+      const allSessions = await storage.getAllSessions();
+      // Filter to only completed sessions and sort by endedAt (most recent first)
+      const completedSessions = allSessions
+        .filter(s => s.endedAt !== null)
+        .sort((a, b) => {
+          const dateA = a.endedAt ? new Date(a.endedAt).getTime() : 0;
+          const dateB = b.endedAt ? new Date(b.endedAt).getTime() : 0;
+          return dateB - dateA;
+        });
+
+      // Get statistics for each session
+      const sessionsWithStats = await Promise.all(
+        completedSessions.map(async (session) => {
+          const responses = await storage.getResponsesForSession(session.id);
+          const correctAnswers = responses.filter(r => r.isCorrect).length;
+          const totalQuestions = responses.length;
+
+          return {
+            id: session.id,
+            mode: session.mode,
+            startedAt: session.startedAt,
+            endedAt: session.endedAt,
+            totalQuestions,
+            correctAnswers,
+            incorrectAnswers: totalQuestions - correctAnswers,
+          };
+        })
+      );
+
+      res.json({ sessions: sessionsWithStats });
+    } catch (error) {
+      console.error('Session history error:', error);
+      res.status(500).json({ message: "세션 이력 조회 중 오류가 발생했습니다." });
+    }
+  });
+
+  // Get session detail with full results
+  app.get("/api/sessions/:id", async (req, res) => {
+    try {
+      const sessionId = req.params.id;
+      const session = await storage.getSession(sessionId);
+
+      if (!session) {
+        return res.status(404).json({ message: "세션을 찾을 수 없습니다." });
+      }
+
+      const responses = await storage.getResponsesForSession(sessionId);
+      const correctAnswers = responses.filter(r => r.isCorrect).length;
+      const incorrectAnswers = responses.length - correctAnswers;
+
+      const questionResults = [];
+      for (const response of responses) {
+        const question = await storage.getQuestion(response.questionId);
+        if (question) {
+          let questionWithChoices: QuestionWithChoices = question;
+          if (question.type === "MCQ") {
+            const choices = await storage.getChoicesForQuestion(question.id);
+            questionWithChoices = { ...question, choices };
+          }
+
+          const userAnswer = response.choiceId || response.selectedBoolean || "";
+          questionResults.push({
+            question: questionWithChoices,
+            userAnswer,
+            isCorrect: response.isCorrect,
+          });
+        }
+      }
+
+      const results: ResultsResponse = {
+        totalQuestions: responses.length,
+        correctAnswers,
+        incorrectAnswers,
+        questions: questionResults,
+      };
+
+      res.json(results);
+    } catch (error) {
+      console.error('Session detail error:', error);
+      res.status(500).json({ message: "세션 상세 조회 중 오류가 발생했습니다." });
+    }
+  });
+
   // Admin stats endpoint (before page view middleware)
   app.get("/api/admin/stats", async (req, res) => {
     try {

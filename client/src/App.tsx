@@ -14,9 +14,10 @@ import Admin from "./pages/Admin";
 import TimerMode from "./pages/TimerMode.tsx";
 import TimerResults from "./pages/TimerResults.tsx";
 import TimerSetup from "./pages/TimerSetup";
+import SessionHistory from "./pages/SessionHistory";
 import type { SessionResponse, AnswerResponse, ResultsResponse, TimerQuestionData, TimerResultsData } from "@shared/schema";
 
-type AppState = "home" | "question" | "results" | "admin" | "timer" | "timer-results" | "timer-setup";
+type AppState = "home" | "question" | "results" | "admin" | "timer" | "timer-results" | "timer-setup" | "history";
 
 function AppContent() {
   const [appState, setAppState] = useState<AppState>("home");
@@ -336,6 +337,15 @@ function AppContent() {
     setAppState("admin");
   };
 
+  const handleHistory = () => {
+    setAppState("history");
+  };
+
+  const handleViewHistoryResults = (historyResults: ResultsResponse) => {
+    setResults(historyResults);
+    setAppState("results");
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 상단 네비게이션 */}
@@ -350,6 +360,13 @@ function AppContent() {
                 data-testid="nav-home"
               >
                 홈
+              </button>
+              <button
+                onClick={handleHistory}
+                className="text-green-600 hover:text-green-800"
+                data-testid="nav-history"
+              >
+                학습 이력
               </button>
               <button
                 onClick={handleAdmin}
@@ -427,6 +444,13 @@ function AppContent() {
         <TimerResults
           results={timerResults}
           onRestart={handleRestart}
+          onHome={handleHome}
+        />
+      )}
+
+      {appState === "history" && (
+        <SessionHistory
+          onViewResults={handleViewHistoryResults}
           onHome={handleHome}
         />
       )}
