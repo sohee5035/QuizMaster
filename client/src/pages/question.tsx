@@ -5,6 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { CheckCircle, XCircle } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import type { SessionResponse, AnswerResponse, QuestionWithChoices } from "@shared/schema";
+import { SUBJECTS } from "@shared/schema";
 
 interface QuestionProps {
   sessionData: SessionResponse;
@@ -117,6 +118,15 @@ export default function Question({ sessionData, onAnswer, onNext, answerResult, 
       {/* Question Card */}
       <Card className="mb-6 shadow-sm">
         <CardContent className="p-6">
+          {/* Subject Badge */}
+          {question.subject && (
+            <div className="mb-4">
+              <span className="inline-block px-3 py-1 text-sm font-semibold bg-blue-100 text-blue-800 rounded-full">
+                {SUBJECTS[question.subject as keyof typeof SUBJECTS]}
+              </span>
+            </div>
+          )}
+
           <div className="mb-6">
             <p
               className="text-lg text-gray-900 leading-relaxed whitespace-pre-wrap"

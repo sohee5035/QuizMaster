@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Spinner } from "@/components/ui/spinner";
 import type { TimerQuestionData } from "@shared/schema";
+import { SUBJECTS } from "@shared/schema";
 
 interface TimerModeProps {
   questionData: TimerQuestionData;
@@ -143,9 +144,17 @@ export default function TimerMode({ questionData, onAnswer, onNext, onSkip }: Ti
       <Card className="mb-6 shadow-sm">
         <CardContent className="p-6">
           <div className="flex justify-between items-center mb-4">
-            <span className="inline-block px-2 py-1 text-xs font-semibold text-gray-600 bg-gray-100 rounded">
-              {questionData.question.type === "MCQ" ? "객관식" : "OX"}
-            </span>
+            <div className="flex items-center space-x-2">
+              <span className="inline-block px-2 py-1 text-xs font-semibold text-gray-600 bg-gray-100 rounded">
+                {questionData.question.type === "MCQ" ? "객관식" : "OX"}
+              </span>
+              {/* Subject Badge */}
+              {questionData.question.subject && (
+                <span className="inline-block px-2 py-1 text-xs font-semibold bg-blue-100 text-blue-800 rounded">
+                  {SUBJECTS[questionData.question.subject as keyof typeof SUBJECTS]}
+                </span>
+              )}
+            </div>
             {/* Timer inside question box */}
             <div className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
               {showExplanation ? (

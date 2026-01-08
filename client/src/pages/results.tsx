@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { ResultsResponse } from "@shared/schema";
+import { SUBJECTS } from "@shared/schema";
 
 interface ResultsProps {
   results: ResultsResponse;
@@ -9,6 +10,23 @@ interface ResultsProps {
 }
 
 export default function Results({ results, onRestart, onHome }: ResultsProps) {
+  // Calculate subject-based statistics
+  const subjectStats = results.questions.reduce((acc, result) => {
+    const subject = result.question.subject;
+    if (subject) {
+      if (!acc[subject]) {
+        acc[subject] = { total: 0, correct: 0 };
+      }
+      acc[subject].total++;
+      if (result.isCorrect) {
+        acc[subject].correct++;
+      }
+    }
+    return acc;
+  }, {} as Record<number, { total: number; correct: number }>);
+
+  const hasSubjectData = Object.keys(subjectStats).length > 0;
+
   return (
     <div className="container mx-auto max-w-2xl p-6">
       <Card className="shadow-sm">
@@ -35,6 +53,37 @@ export default function Results({ results, onRestart, onHome }: ResultsProps) {
               </div>
             </div>
           </div>
+
+          {/* Subject-based Statistics */}
+          {hasSubjectData && (
+            <div className="bg-blue-50 rounded-xl border border-blue-200 p-6 mb-6">
+              <h3 className="font-semibold text-gray-900 mb-4 text-center">과목별 통계</h3>
+              <div className="space-y-3">
+                {Object.entries(subjectStats)
+                  .sort(([a], [b]) => Number(a) - Number(b))
+                  .map(([subject, stats]) => {
+                    const percentage = Math.round((stats.correct / stats.total) * 100);
+                    return (
+                      <div key={subject} className="bg-white rounded-lg p-3">
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-gray-800">
+                            {SUBJECTS[Number(subject) as keyof typeof SUBJECTS]}
+                          </span>
+                          <div className="flex items-center space-x-3">
+                            <span className="text-sm text-gray-600">
+                              {stats.correct}/{stats.total} 정답
+                            </span>
+                            <span className={`font-bold ${percentage >= 60 ? 'text-green-600' : 'text-red-600'}`}>
+                              {percentage}%
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+          )}
 
           {/* Question Review */}
           <div className="space-y-4 mb-8">
