@@ -492,6 +492,9 @@ function ManageQuestionsCard() {
     stem: "",
     explanation: "",
     answer: "",
+    subject: "",
+    round: "",
+    difficulty: "",
     choices: [
       { content: "", isCorrect: false },
       { content: "", isCorrect: false },
@@ -563,6 +566,9 @@ function ManageQuestionsCard() {
       stem: question.stem || "",
       explanation: question.explanation || "",
       answer: question.type === "OX" ? (question.answer ? "O" : "X") : "",
+      subject: question.subject?.toString() || "",
+      round: question.round?.toString() || "",
+      difficulty: question.difficulty?.toString() || "",
       choices: question.type === "MCQ" && choices.length > 0
         ? choices.map((c: any) => ({ content: c.content, isCorrect: c.isCorrect }))
         : [
@@ -580,6 +586,9 @@ function ManageQuestionsCard() {
       stem: "",
       explanation: "",
       answer: "",
+      subject: "",
+      round: "",
+      difficulty: "",
       choices: [
         { content: "", isCorrect: false },
         { content: "", isCorrect: false },
@@ -596,6 +605,9 @@ function ManageQuestionsCard() {
       type: editingQuestion.type,
       stem: editForm.stem,
       explanation: editForm.explanation,
+      subject: editForm.subject ? parseInt(editForm.subject) : null,
+      round: editForm.round ? parseInt(editForm.round) : null,
+      difficulty: editForm.difficulty ? parseInt(editForm.difficulty) : null,
     };
 
     if (editingQuestion.type === "OX") {
@@ -701,6 +713,44 @@ function ManageQuestionsCard() {
                     rows={3}
                   />
                 </div>
+
+                {/* 추가 정보 */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="edit-subject">과목 (1-3)</Label>
+                    <Input
+                      id="edit-subject"
+                      type="number"
+                      min="1"
+                      max="3"
+                      value={editForm.subject}
+                      onChange={(e) => setEditForm({...editForm, subject: e.target.value})}
+                      placeholder="1, 2, 3"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-round">회차</Label>
+                    <Input
+                      id="edit-round"
+                      type="number"
+                      value={editForm.round}
+                      onChange={(e) => setEditForm({...editForm, round: e.target.value})}
+                      placeholder="예: 1"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-difficulty">난이도 (1-5)</Label>
+                    <Input
+                      id="edit-difficulty"
+                      type="number"
+                      min="1"
+                      max="5"
+                      value={editForm.difficulty}
+                      onChange={(e) => setEditForm({...editForm, difficulty: e.target.value})}
+                      placeholder="1-5"
+                    />
+                  </div>
+                </div>
               </>
             )}
 
@@ -761,6 +811,44 @@ function ManageQuestionsCard() {
                     placeholder="해설을 입력하세요"
                     rows={3}
                   />
+                </div>
+
+                {/* 추가 정보 */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="edit-subject-mcq">과목 (1-3)</Label>
+                    <Input
+                      id="edit-subject-mcq"
+                      type="number"
+                      min="1"
+                      max="3"
+                      value={editForm.subject}
+                      onChange={(e) => setEditForm({...editForm, subject: e.target.value})}
+                      placeholder="1, 2, 3"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-round-mcq">회차</Label>
+                    <Input
+                      id="edit-round-mcq"
+                      type="number"
+                      value={editForm.round}
+                      onChange={(e) => setEditForm({...editForm, round: e.target.value})}
+                      placeholder="예: 1"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-difficulty-mcq">난이도 (1-5)</Label>
+                    <Input
+                      id="edit-difficulty-mcq"
+                      type="number"
+                      min="1"
+                      max="5"
+                      value={editForm.difficulty}
+                      onChange={(e) => setEditForm({...editForm, difficulty: e.target.value})}
+                      placeholder="1-5"
+                    />
+                  </div>
                 </div>
               </>
             )}
