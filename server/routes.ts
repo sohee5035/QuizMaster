@@ -1302,13 +1302,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/admin/users", async (req, res) => {
     try {
       const users = await storage.getAllUsers();
-      res.json(users.map(u => ({
-        id: u.id,
-        email: u.email,
-        name: u.name,
-        status: u.status,
-        createdAt: u.createdAt
-      })));
+      res.json({
+        users: users.map(u => ({
+          id: u.id,
+          email: u.email,
+          name: u.name,
+          status: u.status,
+          createdAt: u.createdAt
+        }))
+      });
     } catch (error) {
       console.error("Get users error:", error);
       res.status(500).json({ message: "사용자 목록 조회 실패" });
