@@ -487,6 +487,18 @@ function VisitorStatsCard() {
 function ManageQuestionsCard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [editingQuestion, setEditingQuestion] = useState<any>(null);
+  const [editForm, setEditForm] = useState({
+    stem: "",
+    explanation: "",
+    answer: "",
+    choices: [
+      { content: "", isCorrect: false },
+      { content: "", isCorrect: false },
+      { content: "", isCorrect: false },
+      { content: "", isCorrect: false },
+    ],
+  });
 
   // 모든 문제 조회
   const { data: questions, isLoading, error } = useQuery<any[]>({
@@ -532,32 +544,67 @@ function ManageQuestionsCard() {
     }
   };
 
-  const handleEditQuestion = (question: any) => {
-    const newStem = prompt("문제 내용을 수정하세요:", question.stem);
-    if (newStem === null || newStem.trim() === "") return; // 취소하거나 빈 값
-
-    const newExplanation = prompt("해설을 수정하세요:", question.explanation || "");
-
-    let updateData: any = {
-      type: question.type,
-      stem: newStem,
-      explanation: newExplanation || question.explanation,
-    };
-
-    // OX 문제인 경우 정답 수정
-    if (question.type === "OX") {
-      const answerInput = prompt("정답을 입력하세요 (O 또는 X):", question.answer ? "O" : "X");
-      if (answerInput) {
-        updateData.answer = answerInput.toUpperCase() === "O";
+  const handleEditQuestion = async (question: any) => {
+    // 사지선다인 경우 선택지 로드
+    let choices = [];
+    if (question.type === "MCQ") {
+      try {
+        const response = await fetch(`/api/questions/${question.id}/choices`);
+        if (response.ok) {
+          choices = await response.json();
+        }
+      } catch (error) {
+        console.error("Failed to load choices:", error);
       }
     }
 
-    // 사지선다 문제인 경우 - 간단히 메시지만 표시
-    if (question.type === "MCQ") {
-      alert("사지선다 문제의 선택지는 현재 수정할 수 없습니다.\n문제 내용과 해설만 수정됩니다.");
+    setEditingQuestion(question);
+    setEditForm({
+      stem: question.stem || "",
+      explanation: question.explanation || "",
+      answer: question.type === "OX" ? (question.answer ? "O" : "X") : "",
+      choices: question.type === "MCQ" && choices.length > 0
+        ? choices.map((c: any) => ({ content: c.content, isCorrect: c.isCorrect }))
+        : [
+            { content: "", isCorrect: false },
+            { content: "", isCorrect: false },
+            { content: "", isCorrect: false },
+            { content: "", isCorrect: false },
+          ],
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingQuestion(null);
+    setEditForm({
+      stem: "",
+      explanation: "",
+      answer: "",
+      choices: [
+        { content: "", isCorrect: false },
+        { content: "", isCorrect: false },
+        { content: "", isCorrect: false },
+        { content: "", isCorrect: false },
+      ],
+    });
+  };
+
+  const handleSubmitEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    let updateData: any = {
+      type: editingQuestion.type,
+      stem: editForm.stem,
+      explanation: editForm.explanation,
+    };
+
+    if (editingQuestion.type === "OX") {
+      updateData.answer = editForm.answer === "O";
+    } else if (editingQuestion.type === "MCQ") {
+      updateData.choices = editForm.choices;
     }
 
-    editQuestionMutation.mutate({ id: question.id, data: updateData });
+    editQuestionMutation.mutate({ id: editingQuestion.id, data: updateData });
   };
 
   const editQuestionMutation = useMutation({
@@ -572,7 +619,8 @@ function ManageQuestionsCard() {
     },
     onSuccess: () => {
       toast({ title: "문제 수정 완료", description: "문제가 성공적으로 수정되었습니다." });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/questions'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/questions'] });
+      handleCancelEdit(); // 수정 폼 닫기
     },
     onError: () => {
       toast({
@@ -600,11 +648,143 @@ function ManageQuestionsCard() {
     );
   }
 
+  // 수정 모드일 때
+  if (editingQuestion) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>문제 수정</CardTitle>
+          <CardDescription>
+            {editingQuestion.type === "MCQ" ? "사지선다" : "OX"} 문제를 수정합니다. (ID: {editingQuestion.id})
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmitEdit} className="space-y-4">
+            {/* OX 문제 수정 폼 */}
+            {editingQuestion.type === "OX" && (
+              <>
+                <div>
+                  <Label htmlFor="edit-answer">정답</Label>
+                  <Select
+                    value={editForm.answer}
+                    onValueChange={(value) => setEditForm({...editForm, answer: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="O 또는 X 선택" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="O">O (참)</SelectItem>
+                      <SelectItem value="X">X (거짓)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="edit-stem">문제 내용</Label>
+                  <Textarea
+                    id="edit-stem"
+                    value={editForm.stem}
+                    onChange={(e) => setEditForm({...editForm, stem: e.target.value})}
+                    placeholder="문제 내용을 입력하세요"
+                    required
+                    rows={3}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="edit-explanation">해설</Label>
+                  <Textarea
+                    id="edit-explanation"
+                    value={editForm.explanation}
+                    onChange={(e) => setEditForm({...editForm, explanation: e.target.value})}
+                    placeholder="해설을 입력하세요"
+                    rows={3}
+                  />
+                </div>
+              </>
+            )}
+
+            {/* MCQ 문제 수정 폼 */}
+            {editingQuestion.type === "MCQ" && (
+              <>
+                <div>
+                  <Label htmlFor="edit-stem">문제 내용</Label>
+                  <Textarea
+                    id="edit-stem"
+                    value={editForm.stem}
+                    onChange={(e) => setEditForm({...editForm, stem: e.target.value})}
+                    placeholder="문제 내용을 입력하세요"
+                    required
+                    rows={3}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>선택지</Label>
+                  {editForm.choices.map((choice, index) => (
+                    <div key={index} className="flex gap-2 items-center">
+                      <Input
+                        value={choice.content}
+                        onChange={(e) => {
+                          const newChoices = [...editForm.choices];
+                          newChoices[index].content = e.target.value;
+                          setEditForm({...editForm, choices: newChoices});
+                        }}
+                        placeholder={`선택지 ${index + 1}`}
+                        required
+                      />
+                      <label className="flex items-center gap-1 whitespace-nowrap">
+                        <input
+                          type="radio"
+                          name="correct-answer"
+                          checked={choice.isCorrect}
+                          onChange={() => {
+                            const newChoices = editForm.choices.map((c, i) => ({
+                              ...c,
+                              isCorrect: i === index,
+                            }));
+                            setEditForm({...editForm, choices: newChoices});
+                          }}
+                        />
+                        <span className="text-sm">정답</span>
+                      </label>
+                    </div>
+                  ))}
+                </div>
+
+                <div>
+                  <Label htmlFor="edit-explanation">해설</Label>
+                  <Textarea
+                    id="edit-explanation"
+                    value={editForm.explanation}
+                    onChange={(e) => setEditForm({...editForm, explanation: e.target.value})}
+                    placeholder="해설을 입력하세요"
+                    rows={3}
+                  />
+                </div>
+              </>
+            )}
+
+            <div className="flex gap-2">
+              <Button type="submit" disabled={editQuestionMutation.isPending}>
+                {editQuestionMutation.isPending ? "수정 중..." : "수정 완료"}
+              </Button>
+              <Button type="button" variant="outline" onClick={handleCancelEdit}>
+                취소
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // 목록 모드
   return (
     <Card>
       <CardHeader>
         <CardTitle>문제 관리</CardTitle>
-        <CardDescription>등록된 문제를 확인하고 삭제할 수 있습니다. (총 {questions?.length || 0}개)</CardDescription>
+        <CardDescription>등록된 문제를 확인하고 수정/삭제할 수 있습니다. (총 {questions?.length || 0}개)</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4 max-h-96 overflow-y-auto">

@@ -80,6 +80,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get choices for a specific question
+  app.get("/api/questions/:id/choices", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const choices = await storage.getChoicesForQuestion(id);
+      res.json(choices);
+    } catch (error) {
+      console.error('Choices error:', error);
+      res.status(500).json({ message: "선택지 조회 중 오류가 발생했습니다." });
+    }
+  });
+
   // Get available rounds
   app.get("/api/rounds", async (req, res) => {
     try {
