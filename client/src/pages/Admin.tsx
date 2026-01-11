@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Eye, Calendar, BarChart3, Trash2, Globe } from "lucide-react";
+import { Eye, Calendar, BarChart3, Trash2, Globe, Edit } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { Badge } from "@/components/ui/badge";
 
@@ -532,6 +532,57 @@ function ManageQuestionsCard() {
     }
   };
 
+  const handleEditQuestion = (question: any) => {
+    const newStem = prompt("문제 내용을 수정하세요:", question.stem);
+    if (newStem === null || newStem.trim() === "") return; // 취소하거나 빈 값
+
+    const newExplanation = prompt("해설을 수정하세요:", question.explanation || "");
+
+    let updateData: any = {
+      type: question.type,
+      stem: newStem,
+      explanation: newExplanation || question.explanation,
+    };
+
+    // OX 문제인 경우 정답 수정
+    if (question.type === "OX") {
+      const answerInput = prompt("정답을 입력하세요 (O 또는 X):", question.answer ? "O" : "X");
+      if (answerInput) {
+        updateData.answer = answerInput.toUpperCase() === "O";
+      }
+    }
+
+    // 사지선다 문제인 경우 - 간단히 메시지만 표시
+    if (question.type === "MCQ") {
+      alert("사지선다 문제의 선택지는 현재 수정할 수 없습니다.\n문제 내용과 해설만 수정됩니다.");
+    }
+
+    editQuestionMutation.mutate({ id: question.id, data: updateData });
+  };
+
+  const editQuestionMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      const response = await fetch(`/api/admin/questions/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error("Failed to update question");
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "문제 수정 완료", description: "문제가 성공적으로 수정되었습니다." });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/questions'] });
+    },
+    onError: () => {
+      toast({
+        title: "수정 실패",
+        description: "문제 수정에 실패했습니다.",
+        variant: "destructive",
+      });
+    },
+  });
+
   if (isLoading) {
     return (
       <Card>
@@ -583,16 +634,28 @@ function ManageQuestionsCard() {
                       <p className="text-xs text-gray-500">난이도: {question.difficulty}</p>
                     )}
                   </div>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => handleDeleteQuestion(question.id, question.stem)}
-                    disabled={deleteQuestionMutation.isPending}
-                    data-testid={`button-delete-${question.id}`}
-                  >
-                    <Trash2 className="h-4 w-4 mr-1" />
-                    {deleteQuestionMutation.isPending ? "삭제 중..." : "삭제"}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEditQuestion(question)}
+                      disabled={editQuestionMutation.isPending}
+                      data-testid={`button-edit-${question.id}`}
+                    >
+                      <Edit className="h-4 w-4 mr-1" />
+                      수정
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleDeleteQuestion(question.id, question.stem)}
+                      disabled={deleteQuestionMutation.isPending}
+                      data-testid={`button-delete-${question.id}`}
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      {deleteQuestionMutation.isPending ? "삭제 중..." : "삭제"}
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))

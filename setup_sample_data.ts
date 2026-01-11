@@ -49,16 +49,17 @@ async function setupSampleData() {
     });
 
     try {
-      // 문제 생성
+      // 문제 생성 (타입을 대문자로 변환)
+      const questionType = questionData.type.toUpperCase();
       const question = await storage.createQuestion({
         id: questionData.questionId,
-        type: questionData.type,
+        type: questionType,
         stem: questionData.stem,
         explanation: questionData.explanation || null,
         tags: null,
         difficulty: null,
         source: null,
-        answer: questionData.type === 'ox' ? (questionData.correctAnswer === 'O') : null,
+        answer: questionType === 'OX' ? (questionData.correctAnswer === 'O') : null,
         author: 'admin',
         category: null,
         subject: parseInt(questionData.subject) || null,
@@ -66,7 +67,7 @@ async function setupSampleData() {
       });
 
       // 사지선다인 경우 선택지 생성
-      if (questionData.type === 'mcq') {
+      if (questionType === 'MCQ') {
         const choices = [
           { content: questionData.choice1, isCorrect: questionData.correctAnswer === '1' },
           { content: questionData.choice2, isCorrect: questionData.correctAnswer === '2' },

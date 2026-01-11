@@ -10,8 +10,11 @@ export interface IStorage {
   getQuestions(): Promise<Question[]>;
   getQuestionsByAuthor(author: string): Promise<Question[]>;
   createQuestion(question: InsertQuestion): Promise<Question>;
+  updateQuestion(id: string, question: Partial<InsertQuestion>): Promise<Question>;
   getChoicesForQuestion(questionId: string): Promise<Choice[]>;
   createChoice(choice: InsertChoice): Promise<Choice>;
+  updateChoice(id: string, choice: Partial<InsertChoice>): Promise<Choice>;
+  deleteChoicesForQuestion(questionId: string): Promise<void>;
   
   // Sessions
   createSession(session: InsertSession): Promise<Session>;
@@ -132,6 +135,15 @@ export class DatabaseStorage implements IStorage {
     return question;
   }
 
+  async updateQuestion(id: string, updateData: Partial<InsertQuestion>): Promise<Question> {
+    const [question] = await db
+      .update(questions)
+      .set(updateData)
+      .where(eq(questions.id, id))
+      .returning();
+    return question;
+  }
+
   async getChoicesForQuestion(questionId: string): Promise<Choice[]> {
     return await db.select().from(choices).where(eq(choices.questionId, questionId));
   }
@@ -143,6 +155,19 @@ export class DatabaseStorage implements IStorage {
       .values({ ...insertChoice, id })
       .returning();
     return choice;
+  }
+
+  async updateChoice(id: string, updateData: Partial<InsertChoice>): Promise<Choice> {
+    const [choice] = await db
+      .update(choices)
+      .set(updateData)
+      .where(eq(choices.id, id))
+      .returning();
+    return choice;
+  }
+
+  async deleteChoicesForQuestion(questionId: string): Promise<void> {
+    await db.delete(choices).where(eq(choices.questionId, questionId));
   }
 
   async createSession(insertSession: InsertSession): Promise<Session> {
@@ -420,6 +445,16 @@ export class MemStorage implements IStorage {
     return question;
   }
 
+  async updateQuestion(id: string, updateData: Partial<InsertQuestion>): Promise<Question> {
+    const existing = this.questions.get(id);
+    if (!existing) {
+      throw new Error(`Question ${id} not found`);
+    }
+    const updated: Question = { ...existing, ...updateData };
+    this.questions.set(id, updated);
+    return updated;
+  }
+
   async getChoicesForQuestion(questionId: string): Promise<Choice[]> {
     return Array.from(this.choices.values()).filter(
       choice => choice.questionId === questionId
@@ -431,6 +466,23 @@ export class MemStorage implements IStorage {
     const choice: Choice = { ...insertChoice, id };
     this.choices.set(id, choice);
     return choice;
+  }
+
+  async updateChoice(id: string, updateData: Partial<InsertChoice>): Promise<Choice> {
+    const existing = this.choices.get(id);
+    if (!existing) {
+      throw new Error(`Choice ${id} not found`);
+    }
+    const updated: Choice = { ...existing, ...updateData };
+    this.choices.set(id, updated);
+    return updated;
+  }
+
+  async deleteChoicesForQuestion(questionId: string): Promise<void> {
+    const choiceIds = Array.from(this.choices.values())
+      .filter(choice => choice.questionId === questionId)
+      .map(choice => choice.id);
+    choiceIds.forEach(id => this.choices.delete(id));
   }
 
   async createSession(insertSession: InsertSession): Promise<Session> {

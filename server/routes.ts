@@ -970,11 +970,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 관리자 API - 문제 수정
+  app.put("/api/admin/questions/:id", async (req, res) => {
+    try {
+      const questionId = req.params.id;
+      const { type, stem, explanation, choices: newChoices } = req.body;
+
+      // 문제가 존재하는지 확인
+      const existingQuestion = await storage.getQuestion(questionId);
+      if (!existingQuestion) {
+        return res.status(404).json({ message: "문제를 찾을 수 없습니다." });
+      }
+
+      // 문제 업데이트
+      const updateData: any = { stem, explanation };
+      if (type === "OX") {
+        updateData.answer = req.body.answer;
+      }
+
+      const updatedQuestion = await storage.updateQuestion(questionId, updateData);
+
+      // 사지선다인 경우 선택지 업데이트
+      if (type === "MCQ" && newChoices && Array.isArray(newChoices)) {
+        // 기존 선택지 삭제
+        await storage.deleteChoicesForQuestion(questionId);
+
+        // 새 선택지 생성
+        for (let i = 0; i < newChoices.length; i++) {
+          const choice = newChoices[i];
+          await storage.createChoice({
+            id: `${questionId}_${i + 1}`,
+            questionId: questionId,
+            content: choice.content,
+            isCorrect: choice.isCorrect,
+          });
+        }
+      }
+
+      res.json({ message: "문제가 성공적으로 수정되었습니다.", question: updatedQuestion });
+    } catch (error) {
+      console.error("Error updating question:", error);
+      res.status(500).json({ message: "문제 수정에 실패했습니다." });
+    }
+  });
+
   // 관리자 API - 개별 문제 삭제
   app.delete("/api/admin/questions/:id", async (req, res) => {
     try {
       const questionId = req.params.id;
-      
+
       // 문제가 존재하는지 확인
       const question = await storage.getQuestion(questionId);
       if (!question) {
@@ -983,7 +1027,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // 문제와 관련된 선택지, 응답 모두 삭제
       await storage.deleteQuestion(questionId);
-      
+
       res.json({ message: "문제가 성공적으로 삭제되었습니다." });
     } catch (error) {
       console.error("Error deleting question:", error);
