@@ -304,7 +304,7 @@ function AppContent() {
     try {
       // Submit empty answer to server to mark as incorrect and move to next question
       let emptyAnswer;
-      if (currentQuestion.question.type === "MCQ") {
+      if (currentQuestion.question.type?.toUpperCase() === "MCQ") {
         emptyAnswer = { selectedChoiceId: "" }; // Empty choice for MCQ
       } else {
         emptyAnswer = { selectedBoolean: false }; // Default false for OX

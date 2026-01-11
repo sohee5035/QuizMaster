@@ -74,7 +74,7 @@ export default function TimerMode({ questionData, onAnswer, onNext, onSkip }: Ti
   const handleAnswerSelect = (answer: string | boolean) => {
     if (questionData.isAnswered || showExplanation) return;
 
-    if (questionData.question.type === "MCQ") {
+    if (questionData.question.type?.toUpperCase() === "MCQ") {
       onAnswer({ selectedChoiceId: answer as string });
     } else {
       onAnswer({ selectedBoolean: answer as boolean });
@@ -146,7 +146,7 @@ export default function TimerMode({ questionData, onAnswer, onNext, onSkip }: Ti
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center space-x-2">
               <span className="inline-block px-2 py-1 text-xs font-semibold text-gray-600 bg-gray-100 rounded">
-                {questionData.question.type === "MCQ" ? "객관식" : "OX"}
+                {questionData.question.type?.toUpperCase() === "MCQ" ? "객관식" : "OX"}
               </span>
               {/* Subject Badge */}
               {questionData.question.subject && (
@@ -176,7 +176,7 @@ export default function TimerMode({ questionData, onAnswer, onNext, onSkip }: Ti
 
           {/* Answer Options */}
           <div className="space-y-3">
-            {questionData.question.type === "MCQ" ? (
+            {questionData.question.type?.toUpperCase() === "MCQ" ? (
               questionData.question.choices?.map((choice) => (
                 <button
                   key={choice.id}

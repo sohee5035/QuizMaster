@@ -26,7 +26,7 @@ export default function Question({ sessionData, onAnswer, onNext, answerResult, 
 
     setSelectedAnswer(answer);
     
-    if (question.type === "MCQ") {
+    if (question.type?.toUpperCase() === "MCQ") {
       onAnswer({ selectedChoiceId: answer as string });
     } else {
       onAnswer({ selectedBoolean: answer as boolean });
@@ -137,7 +137,7 @@ export default function Question({ sessionData, onAnswer, onNext, answerResult, 
           </div>
 
           {/* MCQ Options */}
-          {question.type === "MCQ" && question.choices && (
+          {question.type?.toUpperCase() === "MCQ" && question.choices && (
             <div className="space-y-3">
               {question.choices.map((choice) => (
                 <button
@@ -165,7 +165,7 @@ export default function Question({ sessionData, onAnswer, onNext, answerResult, 
           )}
 
           {/* OX Options */}
-          {question.type === "OX" && (
+          {question.type?.toUpperCase() === "OX" && (
             <div className="space-y-3">
               <button
                 onClick={() => handleAnswerSelect(true)}

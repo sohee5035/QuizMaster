@@ -28,7 +28,7 @@ export default function TimerResults({ results, onRestart, onHome }: TimerResult
   };
 
   const getCorrectAnswerText = (question: TimerQuestionData) => {
-    if (question.question.type === "MCQ") {
+    if (question.question.type?.toUpperCase() === "MCQ") {
       const correctChoice = question.question.choices?.find(c => c.isCorrect);
       return correctChoice?.content || "정답 정보 없음";
     } else {
@@ -37,7 +37,7 @@ export default function TimerResults({ results, onRestart, onHome }: TimerResult
   };
 
   const getUserAnswerText = (question: TimerQuestionData) => {
-    if (question.question.type === "MCQ") {
+    if (question.question.type?.toUpperCase() === "MCQ") {
       const userChoice = question.question.choices?.find(c => c.id === question.userAnswer);
       return userChoice?.content || "시간 초과 (답하지 않음)";
     } else {
@@ -106,7 +106,7 @@ export default function TimerResults({ results, onRestart, onHome }: TimerResult
                   <div className="mb-4">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium text-gray-500">
-                        문제 {question.currentQuestion} - {question.question.type === "MCQ" ? "객관식" : "OX"}
+                        문제 {question.currentQuestion} - {question.question.type?.toUpperCase() === "MCQ" ? "객관식" : "OX"}
                       </span>
                       <span className="text-sm font-medium text-red-600">
                         {question.userAnswer === undefined ? "시간 초과" : "오답"}

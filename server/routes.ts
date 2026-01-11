@@ -180,7 +180,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const question = await storage.getQuestion(response.questionId);
         if (question) {
           let questionWithChoices: QuestionWithChoices = question;
-          if (question.type === "MCQ") {
+          if (question.type.toUpperCase() === "MCQ") {
             const choices = await storage.getChoicesForQuestion(question.id);
             questionWithChoices = { ...question, choices };
           }
@@ -476,7 +476,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const firstQuestion = questions[0];
       let questionWithChoices: QuestionWithChoices = firstQuestion;
 
-      if (firstQuestion.type === "MCQ") {
+      if (firstQuestion.type.toUpperCase() === "MCQ") {
         const choices = await storage.getChoicesForQuestion(firstQuestion.id);
         questionWithChoices = {
           ...firstQuestion,
@@ -526,7 +526,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       let questionWithChoices: QuestionWithChoices = nextQuestion;
 
-      if (nextQuestion.type === "MCQ") {
+      if (nextQuestion.type.toUpperCase() === "MCQ") {
         const choices = await storage.getChoicesForQuestion(nextQuestion.id);
         questionWithChoices = {
           ...nextQuestion,
@@ -575,7 +575,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       let isCorrect = false;
 
-      if (currentQuestion.type === "MCQ") {
+      if (currentQuestion.type.toUpperCase() === "MCQ") {
         const { selectedChoiceId } = req.body;
         
         // Handle empty answer (time out) - mark as incorrect
@@ -606,7 +606,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             isCorrect,
           });
         }
-      } else if (currentQuestion.type === "OX") {
+      } else if (currentQuestion.type.toUpperCase() === "OX") {
         const { selectedBoolean } = req.body;
         
         // Handle empty answer (time out) - mark as incorrect  
@@ -671,7 +671,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const question = await storage.getQuestion(response.questionId);
         if (question) {
           let questionWithChoices: QuestionWithChoices = question;
-          if (question.type === "MCQ") {
+          if (question.type.toUpperCase() === "MCQ") {
             const choices = await storage.getChoicesForQuestion(question.id);
             questionWithChoices = { ...question, choices };
           }
@@ -1094,7 +1094,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         csvRow += `"${question.difficulty || ''}",`;
         csvRow += `"${question.source || ''}",`;
 
-        if (question.type === "OX") {
+        if (question.type.toUpperCase() === "OX") {
           // OX 문제
           csvRow += `"${question.answer ? 'O' : 'X'}",`;
           csvRow += ',"","","",""'; // 빈 선택지들

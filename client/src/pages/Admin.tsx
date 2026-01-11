@@ -550,7 +550,7 @@ function ManageQuestionsCard() {
   const handleEditQuestion = async (question: any) => {
     // 사지선다인 경우 선택지 로드
     let choices = [];
-    if (question.type === "MCQ") {
+    if (question.type?.toUpperCase() === "MCQ") {
       try {
         const response = await fetch(`/api/questions/${question.id}/choices`);
         if (response.ok) {
@@ -565,11 +565,11 @@ function ManageQuestionsCard() {
     setEditForm({
       stem: question.stem || "",
       explanation: question.explanation || "",
-      answer: question.type === "OX" ? (question.answer ? "O" : "X") : "",
+      answer: question.type?.toUpperCase() === "OX" ? (question.answer ? "O" : "X") : "",
       subject: question.subject?.toString() || "",
       round: question.round?.toString() || "",
       difficulty: question.difficulty?.toString() || "",
-      choices: question.type === "MCQ" && choices.length > 0
+      choices: question.type?.toUpperCase() === "MCQ" && choices.length > 0
         ? choices.map((c: any) => ({ content: c.content, isCorrect: c.isCorrect }))
         : [
             { content: "", isCorrect: false },
@@ -610,9 +610,9 @@ function ManageQuestionsCard() {
       difficulty: editForm.difficulty ? parseInt(editForm.difficulty) : null,
     };
 
-    if (editingQuestion.type === "OX") {
+    if (editingQuestion.type?.toUpperCase() === "OX") {
       updateData.answer = editForm.answer === "O";
-    } else if (editingQuestion.type === "MCQ") {
+    } else if (editingQuestion.type?.toUpperCase() === "MCQ") {
       updateData.choices = editForm.choices;
     }
 
@@ -667,13 +667,13 @@ function ManageQuestionsCard() {
         <CardHeader>
           <CardTitle>문제 수정</CardTitle>
           <CardDescription>
-            {editingQuestion.type === "MCQ" ? "사지선다" : "OX"} 문제를 수정합니다. (ID: {editingQuestion.id})
+            {editingQuestion.type?.toUpperCase() === "MCQ" ? "사지선다" : "OX"} 문제를 수정합니다. (ID: {editingQuestion.id})
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmitEdit} className="space-y-4">
             {/* OX 문제 수정 폼 */}
-            {editingQuestion.type === "OX" && (
+            {editingQuestion.type?.toUpperCase() === "OX" && (
               <>
                 <div>
                   <Label htmlFor="edit-answer">정답</Label>
@@ -755,7 +755,7 @@ function ManageQuestionsCard() {
             )}
 
             {/* MCQ 문제 수정 폼 */}
-            {editingQuestion.type === "MCQ" && (
+            {editingQuestion.type?.toUpperCase() === "MCQ" && (
               <>
                 <div>
                   <Label htmlFor="edit-stem">문제 내용</Label>
@@ -882,8 +882,8 @@ function ManageQuestionsCard() {
                 <div className="flex justify-between items-start gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      <Badge variant={question.type === "MCQ" ? "default" : "secondary"}>
-                        {question.type === "MCQ" ? "사지선다" : "OX"}
+                      <Badge variant={question.type?.toUpperCase() === "MCQ" ? "default" : "secondary"}>
+                        {question.type?.toUpperCase() === "MCQ" ? "사지선다" : "OX"}
                       </Badge>
                       {question.author === "wangsohee" && (
                         <Badge variant="outline" className="bg-pink-50 text-pink-700 border-pink-200">
