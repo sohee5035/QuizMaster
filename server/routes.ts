@@ -1026,6 +1026,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 관리자 API - 모든 데이터 삭제 (위험한 기능)
+  // ⚠️ 중요: 이 라우트는 /:id보다 먼저 정의되어야 합니다!
+  app.delete("/api/admin/questions/clear", async (req, res) => {
+    try {
+      await storage.clearAllData();
+      res.json({ message: "모든 문제와 선택지가 삭제되었습니다." });
+    } catch (error) {
+      console.error("Error clearing data:", error);
+      res.status(500).json({ message: "데이터 삭제에 실패했습니다." });
+    }
+  });
+
   // 관리자 API - 개별 문제 삭제
   app.delete("/api/admin/questions/:id", async (req, res) => {
     try {
@@ -1047,30 +1059,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // 관리자 API - 모든 데이터 삭제 (위험한 기능)
-  app.delete("/api/admin/questions/clear", async (req, res) => {
-    try {
-      await storage.clearAllData();
-      res.json({ message: "모든 문제와 선택지가 삭제되었습니다." });
-    } catch (error) {
-      console.error("Error clearing data:", error);
-      res.status(500).json({ message: "데이터 삭제에 실패했습니다." });
-    }
-  });
-
   // 관리자 API - CSV 다운로드
   app.get("/api/admin/questions/download", async (req, res) => {
     try {
       const questions = await storage.getQuestions();
-      
+
       if (questions.length === 0) {
         return res.status(404).json({ message: "다운로드할 문제가 없습니다." });
       }
 
+      // 파일명 생성: adsp_questions_15_20260111.csv
+      const today = new Date();
+      const dateStr = today.toISOString().split('T')[0].replace(/-/g, '');
+      const filename = `adsp_questions_${questions.length}_${dateStr}.csv`;
+
       // CSV 헤더 설정
       res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-      res.setHeader('Content-Disposition', 'attachment; filename="kb_exam_questions.csv"');
-      
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
       // CSV 헤더 (BOM 제거)
       const header = 'question_id,type,stem,explanation,tags,difficulty,source,answer,choice1,choice2,choice3,choice4,correct_answer\n';
       res.write(header);

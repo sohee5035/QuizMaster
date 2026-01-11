@@ -1077,6 +1077,12 @@ export default function Admin() {
   const queryClient = useQueryClient();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  // 문제 개수 조회
+  const { data: allQuestions } = useQuery<any[]>({
+    queryKey: ['/api/questions'],
+  });
+  const questionCount = allQuestions?.length || 0;
+
   // OX 문제 상태
   const [oxForm, setOxForm] = useState({
     questionId: "",
@@ -1729,7 +1735,7 @@ export default function Admin() {
                       className="w-full border-green-300 text-green-700 hover:bg-green-100"
                       data-testid="button-download-csv"
                     >
-                      📁 CSV 파일 다운로드 (100개 문제)
+                      📁 CSV 파일 다운로드 ({questionCount}개 문제)
                     </Button>
                   </div>
 
