@@ -490,6 +490,7 @@ function ManageQuestionsCard() {
   const [editingQuestion, setEditingQuestion] = useState<any>(null);
   const [editForm, setEditForm] = useState({
     stem: "",
+    boxContent: "",
     explanation: "",
     answer: "",
     subject: "",
@@ -564,6 +565,7 @@ function ManageQuestionsCard() {
     setEditingQuestion(question);
     setEditForm({
       stem: question.stem || "",
+      boxContent: question.boxContent || "",
       explanation: question.explanation || "",
       answer: question.type?.toUpperCase() === "OX" ? (question.answer ? "O" : "X") : "",
       subject: question.subject?.toString() || "",
@@ -584,6 +586,7 @@ function ManageQuestionsCard() {
     setEditingQuestion(null);
     setEditForm({
       stem: "",
+      boxContent: "",
       explanation: "",
       answer: "",
       subject: "",
@@ -604,6 +607,7 @@ function ManageQuestionsCard() {
     let updateData: any = {
       type: editingQuestion.type,
       stem: editForm.stem,
+      boxContent: editForm.boxContent,
       explanation: editForm.explanation,
       subject: editForm.subject ? parseInt(editForm.subject) : null,
       round: editForm.round ? parseInt(editForm.round) : null,
@@ -704,6 +708,21 @@ function ManageQuestionsCard() {
                 </div>
 
                 <div>
+                  <Label htmlFor="edit-box-content">박스 내용 (선택사항)</Label>
+                  <Textarea
+                    id="edit-box-content"
+                    value={editForm.boxContent}
+                    onChange={(e) => setEditForm({...editForm, boxContent: e.target.value})}
+                    placeholder="회색 박스로 표시할 내용을 입력하세요"
+                    className="bg-gray-50"
+                    rows={3}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    💡 입력하면 문제 안에 회색 박스로 강조 표시됩니다
+                  </p>
+                </div>
+
+                <div>
                   <Label htmlFor="edit-explanation">해설</Label>
                   <Textarea
                     id="edit-explanation"
@@ -767,6 +786,21 @@ function ManageQuestionsCard() {
                     required
                     rows={3}
                   />
+                </div>
+
+                <div>
+                  <Label htmlFor="edit-box-content-mcq">박스 내용 (선택사항)</Label>
+                  <Textarea
+                    id="edit-box-content-mcq"
+                    value={editForm.boxContent}
+                    onChange={(e) => setEditForm({...editForm, boxContent: e.target.value})}
+                    placeholder="회색 박스로 표시할 내용을 입력하세요"
+                    className="bg-gray-50"
+                    rows={3}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    💡 입력하면 문제 안에 회색 박스로 강조 표시됩니다
+                  </p>
                 </div>
 
                 <div className="space-y-2">
@@ -1175,6 +1209,7 @@ export default function Admin() {
   const [oxForm, setOxForm] = useState({
     questionId: "",
     stem: "",
+    boxContent: "",
     answer: "",
     explanation: "",
     tags: "",
@@ -1189,6 +1224,7 @@ export default function Admin() {
   const [mcqForm, setMcqForm] = useState({
     questionId: "",
     stem: "",
+    boxContent: "",
     choice1: "",
     choice2: "",
     choice3: "",
@@ -1224,6 +1260,7 @@ export default function Admin() {
       setOxForm({
         questionId: "",
         stem: "",
+        boxContent: "",
         answer: "",
         explanation: "",
         tags: "",
@@ -1236,6 +1273,7 @@ export default function Admin() {
       setMcqForm({
         questionId: "",
         stem: "",
+        boxContent: "",
         choice1: "",
         choice2: "",
         choice3: "",
@@ -1431,6 +1469,7 @@ export default function Admin() {
       type: "MCQ",
       questionId: mcqForm.questionId,
       stem: mcqForm.stem,
+      boxContent: mcqForm.boxContent,
       explanation: mcqForm.explanation,
       tags: mcqForm.tags,
       difficulty: mcqForm.difficulty ? parseInt(mcqForm.difficulty) : null,
@@ -1524,6 +1563,22 @@ export default function Admin() {
                       required
                       data-testid="textarea-ox-stem"
                     />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="ox-box-content">박스 내용 (선택사항)</Label>
+                    <Textarea
+                      id="ox-box-content"
+                      value={oxForm.boxContent}
+                      onChange={(e) => setOxForm({...oxForm, boxContent: e.target.value})}
+                      placeholder="회색 박스로 표시할 내용을 입력하세요 (예: 정의, 보기 등)"
+                      className="bg-gray-50"
+                      data-testid="textarea-ox-box-content"
+                      rows={3}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      💡 입력하면 문제 안에 회색 박스로 강조 표시됩니다
+                    </p>
                   </div>
 
                   <div>
@@ -1663,6 +1718,22 @@ export default function Admin() {
                       required
                       data-testid="textarea-mcq-stem"
                     />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="mcq-box-content">박스 내용 (선택사항)</Label>
+                    <Textarea
+                      id="mcq-box-content"
+                      value={mcqForm.boxContent}
+                      onChange={(e) => setMcqForm({...mcqForm, boxContent: e.target.value})}
+                      placeholder="회색 박스로 표시할 내용을 입력하세요 (예: 정의, 보기 등)"
+                      className="bg-gray-50"
+                      data-testid="textarea-mcq-box-content"
+                      rows={3}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      💡 입력하면 문제 안에 회색 박스로 강조 표시됩니다
+                    </p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">

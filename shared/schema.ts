@@ -7,6 +7,7 @@ export const questions = pgTable("questions", {
   id: text("id").primaryKey(),
   type: text("type").notNull(), // 'MCQ' or 'OX'
   stem: text("stem").notNull(),
+  boxContent: text("box_content"), // 문제 본문 안에 표시할 회색 박스 내용
   explanation: text("explanation"),
   tags: text("tags"),
   difficulty: integer("difficulty"),

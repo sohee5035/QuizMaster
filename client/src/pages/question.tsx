@@ -136,6 +136,17 @@ export default function Question({ sessionData, onAnswer, onNext, answerResult, 
             </p>
           </div>
 
+          {/* Box Content */}
+          {question.boxContent && (
+            <div className="mb-6">
+              <div className="border border-gray-300 bg-gray-50 rounded-lg p-4">
+                <p className="text-base text-gray-800 leading-relaxed whitespace-pre-wrap">
+                  {question.boxContent}
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* MCQ Options */}
           {question.type?.toUpperCase() === "MCQ" && question.choices && (
             <div className="space-y-3">
