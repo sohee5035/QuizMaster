@@ -702,7 +702,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // 관리자 API - 문제 등록
   app.post("/api/admin/questions", async (req, res) => {
     try {
-      const { type, questionId, stem, explanation, tags, difficulty, subject, source, answer, choices, author } = req.body;
+      const { type, questionId, stem, boxContent, explanation, tags, difficulty, subject, source, answer, choices, author } = req.body;
 
       if (!type || !questionId || !stem || !explanation) {
         return res.status(400).json({ message: "필수 필드가 누락되었습니다." });
@@ -713,6 +713,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         id: questionId,
         type,
         stem,
+        boxContent: boxContent || null,
         explanation,
         tags: tags || null,
         difficulty: difficulty || null,
@@ -754,7 +755,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const results = [];
 
       for (const questionData of questions) {
-        const { type, questionId, stem, explanation, tags, difficulty, subject, source, answer, choices, author } = questionData;
+        const { type, questionId, stem, boxContent, explanation, tags, difficulty, subject, source, answer, choices, author } = questionData;
 
         if (!type || !questionId || !stem || !explanation) {
           results.push({ questionId, success: false, error: "필수 필드 누락" });
@@ -767,6 +768,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             id: questionId,
             type,
             stem,
+            boxContent: boxContent || null,
             explanation,
             tags: tags || null,
             difficulty: difficulty || null,
@@ -846,6 +848,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               
               const questionId = row[qIdKey] || row.questionId || row["문제ID"];
               const stem = row.stem || row["문제내용"];
+              const boxContent = row.box_content || row.boxContent || row["박스내용"] || null;
               const explanation = row.explanation || row["해설"];
               const tags = row.tags || row["태그"] || null;
               const difficulty = (row.difficulty || row["난이도"]) ? parseInt(row.difficulty || row["난이도"]) : null;
@@ -892,6 +895,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     id: questionId,
                     type: "OX",
                     stem,
+                    boxContent,
                     explanation,
                     tags,
                     difficulty,
@@ -911,6 +915,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     id: questionId,
                     type: "MCQ",
                     stem,
+                    boxContent,
                     explanation,
                     tags,
                     difficulty,
@@ -1085,7 +1090,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
 
       // CSV 헤더 (BOM 제거)
-      const header = 'question_id,type,stem,explanation,tags,difficulty,source,answer,choice1,choice2,choice3,choice4,correct_answer\n';
+      const header = 'question_id,type,stem,box_content,explanation,tags,difficulty,source,answer,choice1,choice2,choice3,choice4,correct_answer\n';
       res.write(header);
 
       // 각 문제를 CSV 형식으로 변환
@@ -1096,6 +1101,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         csvRow += `"${question.id}",`;
         csvRow += `"${question.type}",`;
         csvRow += `"${question.stem.replace(/"/g, '""')}",`;
+        csvRow += `"${question.boxContent?.replace(/"/g, '""') || ''}",`;
         csvRow += `"${question.explanation?.replace(/"/g, '""') || ''}",`;
         csvRow += `"${question.tags || ''}",`;
         csvRow += `"${question.difficulty || ''}",`;
