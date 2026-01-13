@@ -3,6 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { ResultsResponse } from "@shared/schema";
 import { SUBJECTS } from "@shared/schema";
+import ReactMarkdown from "react-markdown";
+import remarkMath from "remark-math";
+import remarkGfm from "remark-gfm";
+import rehypeKatex from "rehype-katex";
+import "katex/dist/katex.min.css";
 
 interface ResultsProps {
   results: ResultsResponse;
@@ -134,17 +139,29 @@ export default function Results({ results, onRestart, onHome }: ResultsProps) {
                         {result.isCorrect ? '정답' : '오답'}
                       </span>
                     </div>
-                    <p className="text-gray-900 mb-3 whitespace-pre-wrap" data-testid={`text-question-${originalIndex}`}>
-                      {result.question.stem}
-                    </p>
+                    <div className="mb-3" data-testid={`text-question-${originalIndex}`}>
+                      <div className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-p:text-gray-900 prose-strong:text-gray-900 prose-code:text-pink-600 prose-code:bg-pink-50">
+                        <ReactMarkdown
+                          remarkPlugins={[remarkMath, remarkGfm]}
+                          rehypePlugins={[rehypeKatex]}
+                        >
+                          {result.question.stem}
+                        </ReactMarkdown>
+                      </div>
+                    </div>
 
                     {/* Box Content */}
                     {result.question.boxContent && (
                       <div className="mb-3">
                         <div className="border border-gray-300 bg-gray-50 rounded-lg p-3">
-                          <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
-                            {result.question.boxContent}
-                          </p>
+                          <div className="prose prose-sm max-w-none prose-headings:text-gray-800 prose-p:text-gray-800 prose-strong:text-gray-900 prose-code:text-pink-600 prose-code:bg-pink-50">
+                            <ReactMarkdown
+                              remarkPlugins={[remarkMath, remarkGfm]}
+                              rehypePlugins={[rehypeKatex]}
+                            >
+                              {result.question.boxContent}
+                            </ReactMarkdown>
+                          </div>
                         </div>
                       </div>
                     )}
@@ -161,10 +178,15 @@ export default function Results({ results, onRestart, onHome }: ResultsProps) {
                     <div className="bg-gray-50 rounded p-3">
                       <div className="text-sm font-medium text-gray-600 mb-1">해설</div>
                       <div
-                        className="text-sm text-gray-700 whitespace-pre-wrap"
+                        className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-strong:text-gray-900 prose-code:text-pink-600 prose-code:bg-pink-50 prose-pre:bg-gray-800 prose-a:text-blue-600 prose-blockquote:border-l-blue-500 prose-blockquote:bg-blue-50 prose-blockquote:text-gray-700"
                         data-testid={`text-explanation-${originalIndex}`}
                       >
-                        {result.question.explanation}
+                        <ReactMarkdown
+                          remarkPlugins={[remarkMath, remarkGfm]}
+                          rehypePlugins={[rehypeKatex]}
+                        >
+                          {result.question.explanation}
+                        </ReactMarkdown>
                       </div>
                     </div>
                   </div>

@@ -6,6 +6,11 @@ import { CheckCircle, XCircle } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import type { SessionResponse, AnswerResponse, QuestionWithChoices } from "@shared/schema";
 import { SUBJECTS } from "@shared/schema";
+import ReactMarkdown from "react-markdown";
+import remarkMath from "remark-math";
+import remarkGfm from "remark-gfm";
+import rehypeKatex from "rehype-katex";
+import "katex/dist/katex.min.css";
 
 interface QuestionProps {
   sessionData: SessionResponse;
@@ -127,22 +132,29 @@ export default function Question({ sessionData, onAnswer, onNext, answerResult, 
             </div>
           )}
 
-          <div className="mb-6">
-            <p
-              className="text-lg text-gray-900 leading-relaxed whitespace-pre-wrap"
-              data-testid="text-question-stem"
-            >
-              {question.stem}
-            </p>
+          <div className="mb-6" data-testid="text-question-stem">
+            <div className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-p:text-gray-900 prose-strong:text-gray-900 prose-code:text-pink-600 prose-code:bg-pink-50 prose-pre:bg-gray-800 prose-a:text-blue-600">
+              <ReactMarkdown
+                remarkPlugins={[remarkMath, remarkGfm]}
+                rehypePlugins={[rehypeKatex]}
+              >
+                {question.stem}
+              </ReactMarkdown>
+            </div>
           </div>
 
           {/* Box Content */}
           {question.boxContent && (
             <div className="mb-6">
               <div className="border border-gray-300 bg-gray-50 rounded-lg p-4">
-                <p className="text-base text-gray-800 leading-relaxed whitespace-pre-wrap">
-                  {question.boxContent}
-                </p>
+                <div className="prose prose-sm max-w-none prose-headings:text-gray-800 prose-p:text-gray-800 prose-strong:text-gray-900 prose-code:text-pink-600 prose-code:bg-pink-50 prose-pre:bg-gray-800">
+                  <ReactMarkdown
+                    remarkPlugins={[remarkMath, remarkGfm]}
+                    rehypePlugins={[rehypeKatex]}
+                  >
+                    {question.boxContent}
+                  </ReactMarkdown>
+                </div>
               </div>
             </div>
           )}
@@ -158,15 +170,20 @@ export default function Question({ sessionData, onAnswer, onNext, answerResult, 
                   className={getChoiceButtonClass(choice.id, choice.isCorrect)}
                   data-testid={`button-choice-${choice.id}`}
                 >
-                  <span className={`font-medium whitespace-pre-wrap ${
+                  <div className={`prose prose-sm max-w-none ${
                     answerResult && selectedAnswer === choice.id && choice.isCorrect
-                      ? "text-green-700"
+                      ? "prose-p:text-green-700 prose-strong:text-green-700"
                       : answerResult && selectedAnswer === choice.id && !choice.isCorrect
-                      ? "text-red-700"
-                      : "text-gray-900"
-                  }`}>
-                    {choice.content}
-                  </span>
+                      ? "prose-p:text-red-700 prose-strong:text-red-700"
+                      : "prose-p:text-gray-900 prose-strong:text-gray-900"
+                  } prose-code:text-pink-600 prose-code:bg-pink-50`}>
+                    <ReactMarkdown
+                      remarkPlugins={[remarkMath, remarkGfm]}
+                      rehypePlugins={[rehypeKatex]}
+                    >
+                      {choice.content}
+                    </ReactMarkdown>
+                  </div>
                   {answerResult && selectedAnswer === choice.id && choice.isCorrect && (
                     <span className="ml-2 text-green-600">✓</span>
                   )}
@@ -227,10 +244,15 @@ export default function Question({ sessionData, onAnswer, onNext, answerResult, 
           <CardContent className="p-6">
             <div className="font-semibold text-gray-900 mb-3">해설</div>
             <div
-              className="text-gray-700 leading-relaxed whitespace-pre-wrap"
+              className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-strong:text-gray-900 prose-code:text-pink-600 prose-code:bg-pink-50 prose-pre:bg-gray-800 prose-a:text-blue-600 prose-blockquote:border-l-blue-500 prose-blockquote:bg-blue-50 prose-blockquote:text-gray-700"
               data-testid="text-explanation"
             >
-              {answerResult.explanation}
+              <ReactMarkdown
+                remarkPlugins={[remarkMath, remarkGfm]}
+                rehypePlugins={[rehypeKatex]}
+              >
+                {answerResult.explanation}
+              </ReactMarkdown>
             </div>
           </CardContent>
         </Card>

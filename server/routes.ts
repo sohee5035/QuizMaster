@@ -856,6 +856,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               const tags = row.tags || row["태그"] || null;
               const difficulty = (row.difficulty || row["난이도"]) ? parseInt(row.difficulty || row["난이도"]) : null;
               const subject = (row.subject || row["과목"]) ? parseInt(row.subject || row["과목"]) : null;
+              const round = (row.round || row["회차"]) ? parseInt(row.round || row["회차"]) : null;
               const source = row.source || row["출처"] || null;
 
               if (!questionId || !stem || !explanation) {
@@ -903,6 +904,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     tags,
                     difficulty,
                     subject,
+                    round,
                     source,
                     answer: answerBoolean,
                   });
@@ -923,6 +925,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     tags,
                     difficulty,
                     subject,
+                    round,
                     source,
                     answer: null,
                   });
@@ -1096,13 +1099,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.write('\uFEFF');
 
       // CSV 헤더
-      const header = 'question_id,type,stem,box_content,explanation,tags,difficulty,source,answer,choice1,choice2,choice3,choice4,correct_answer\n';
+      const header = 'question_id,type,stem,box_content,explanation,tags,difficulty,subject,round,source,answer,choice1,choice2,choice3,choice4,correct_answer\n';
       res.write(header);
 
       // 각 문제를 CSV 형식으로 변환
       for (const question of questions) {
         let csvRow = '';
-        
+
         // 기본 정보
         csvRow += `"${question.id}",`;
         csvRow += `"${question.type}",`;
@@ -1111,6 +1114,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         csvRow += `"${question.explanation?.replace(/"/g, '""') || ''}",`;
         csvRow += `"${question.tags || ''}",`;
         csvRow += `"${question.difficulty || ''}",`;
+        csvRow += `"${question.subject || ''}",`;
+        csvRow += `"${question.round || ''}",`;
         csvRow += `"${question.source || ''}",`;
 
         if (question.type.toUpperCase() === "OX") {

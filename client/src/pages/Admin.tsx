@@ -1874,24 +1874,27 @@ export default function Admin() {
                   </div>
 
                   <div>
-                    <Label htmlFor="ox-stem">문제 내용</Label>
+                    <Label htmlFor="ox-stem">문제 내용 (마크다운 지원)</Label>
                     <Textarea
                       id="ox-stem"
                       value={oxForm.stem}
                       onChange={(e) => setOxForm({...oxForm, stem: e.target.value})}
-                      placeholder="문제 내용을 입력하세요"
+                      placeholder="문제 내용을 입력하세요 (마크다운, 수식 지원)"
                       required
                       data-testid="textarea-ox-stem"
                     />
+                    <p className="text-xs text-gray-500 mt-1">
+                      💡 **굵게**, *기울임*, $수식$, $$블록수식$$ 사용 가능
+                    </p>
                   </div>
 
                   <div>
-                    <Label htmlFor="ox-box-content">박스 내용 (선택사항)</Label>
+                    <Label htmlFor="ox-box-content">박스 내용 (선택사항, 마크다운 지원)</Label>
                     <Textarea
                       id="ox-box-content"
                       value={oxForm.boxContent}
                       onChange={(e) => setOxForm({...oxForm, boxContent: e.target.value})}
-                      placeholder="회색 박스로 표시할 내용을 입력하세요 (예: 정의, 보기 등)"
+                      placeholder="회색 박스로 표시할 내용 (마크다운, 수식 지원)"
                       className="bg-gray-50"
                       data-testid="textarea-ox-box-content"
                       rows={3}
@@ -1902,15 +1905,18 @@ export default function Admin() {
                   </div>
 
                   <div>
-                    <Label htmlFor="ox-explanation">해설</Label>
+                    <Label htmlFor="ox-explanation">해설 (마크다운 지원)</Label>
                     <Textarea
                       id="ox-explanation"
                       value={oxForm.explanation}
                       onChange={(e) => setOxForm({...oxForm, explanation: e.target.value})}
-                      placeholder="정답 해설을 입력하세요"
+                      placeholder="정답 해설 (마크다운, 수식 지원)"
                       required
                       data-testid="textarea-ox-explanation"
                     />
+                    <p className="text-xs text-gray-500 mt-1">
+                      💡 **굵게**, *기울임*, $수식$, $$블록수식$$ 사용 가능
+                    </p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -2029,24 +2035,27 @@ export default function Admin() {
                   </div>
 
                   <div>
-                    <Label htmlFor="mcq-stem">문제 내용</Label>
+                    <Label htmlFor="mcq-stem">문제 내용 (마크다운 지원)</Label>
                     <Textarea
                       id="mcq-stem"
                       value={mcqForm.stem}
                       onChange={(e) => setMcqForm({...mcqForm, stem: e.target.value})}
-                      placeholder="문제 내용을 입력하세요"
+                      placeholder="문제 내용을 입력하세요 (마크다운, 수식 지원)"
                       required
                       data-testid="textarea-mcq-stem"
                     />
+                    <p className="text-xs text-gray-500 mt-1">
+                      💡 **굵게**, *기울임*, $수식$, $$블록수식$$ 사용 가능
+                    </p>
                   </div>
 
                   <div>
-                    <Label htmlFor="mcq-box-content">박스 내용 (선택사항)</Label>
+                    <Label htmlFor="mcq-box-content">박스 내용 (선택사항, 마크다운 지원)</Label>
                     <Textarea
                       id="mcq-box-content"
                       value={mcqForm.boxContent}
                       onChange={(e) => setMcqForm({...mcqForm, boxContent: e.target.value})}
-                      placeholder="회색 박스로 표시할 내용을 입력하세요 (예: 정의, 보기 등)"
+                      placeholder="회색 박스로 표시할 내용 (마크다운, 수식 지원)"
                       className="bg-gray-50"
                       data-testid="textarea-mcq-box-content"
                       rows={3}
@@ -2058,45 +2067,45 @@ export default function Admin() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="mcq-choice1">선택지 1</Label>
+                      <Label htmlFor="mcq-choice1">선택지 1 (마크다운 지원)</Label>
                       <Input
                         id="mcq-choice1"
                         value={mcqForm.choice1}
                         onChange={(e) => setMcqForm({...mcqForm, choice1: e.target.value})}
-                        placeholder="1번 선택지"
+                        placeholder="1번 선택지 (수식: $x^2$)"
                         required
                         data-testid="input-mcq-choice1"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="mcq-choice2">선택지 2</Label>
+                      <Label htmlFor="mcq-choice2">선택지 2 (마크다운 지원)</Label>
                       <Input
                         id="mcq-choice2"
                         value={mcqForm.choice2}
                         onChange={(e) => setMcqForm({...mcqForm, choice2: e.target.value})}
-                        placeholder="2번 선택지"
+                        placeholder="2번 선택지 (수식: $x^2$)"
                         required
                         data-testid="input-mcq-choice2"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="mcq-choice3">선택지 3</Label>
+                      <Label htmlFor="mcq-choice3">선택지 3 (마크다운 지원)</Label>
                       <Input
                         id="mcq-choice3"
                         value={mcqForm.choice3}
                         onChange={(e) => setMcqForm({...mcqForm, choice3: e.target.value})}
-                        placeholder="3번 선택지"
+                        placeholder="3번 선택지 (수식: $x^2$)"
                         required
                         data-testid="input-mcq-choice3"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="mcq-choice4">선택지 4</Label>
+                      <Label htmlFor="mcq-choice4">선택지 4 (마크다운 지원)</Label>
                       <Input
                         id="mcq-choice4"
                         value={mcqForm.choice4}
                         onChange={(e) => setMcqForm({...mcqForm, choice4: e.target.value})}
-                        placeholder="4번 선택지"
+                        placeholder="4번 선택지 (수식: $x^2$)"
                         required
                         data-testid="input-mcq-choice4"
                       />
@@ -2104,15 +2113,18 @@ export default function Admin() {
                   </div>
 
                   <div>
-                    <Label htmlFor="mcq-explanation">해설</Label>
+                    <Label htmlFor="mcq-explanation">해설 (마크다운 지원)</Label>
                     <Textarea
                       id="mcq-explanation"
                       value={mcqForm.explanation}
                       onChange={(e) => setMcqForm({...mcqForm, explanation: e.target.value})}
-                      placeholder="정답 해설을 입력하세요"
+                      placeholder="정답 해설 (마크다운, 수식 지원)"
                       required
                       data-testid="textarea-mcq-explanation"
                     />
+                    <p className="text-xs text-gray-500 mt-1">
+                      💡 **굵게**, *기울임*, $수식$, $$블록수식$$ 사용 가능
+                    </p>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
