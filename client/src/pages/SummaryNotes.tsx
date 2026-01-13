@@ -5,6 +5,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { apiRequest } from "@/lib/queryClient";
 import { SUBJECTS } from "@shared/schema";
 import type { SummaryNote } from "@shared/schema";
+import ReactMarkdown from "react-markdown";
+import remarkMath from "remark-math";
+import remarkGfm from "remark-gfm";
+import rehypeKatex from "rehype-katex";
+import "katex/dist/katex.min.css";
 
 interface SummaryNotesProps {
   onHome: () => void;
@@ -90,10 +95,13 @@ export default function SummaryNotes({ onHome }: SummaryNotesProps) {
                           <h3 className="text-lg font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">
                             {note.title}
                           </h3>
-                          <div className="prose prose-sm max-w-none">
-                            <div className="text-gray-700 whitespace-pre-wrap leading-relaxed">
+                          <div className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-strong:text-gray-900 prose-code:text-pink-600 prose-code:bg-pink-50 prose-pre:bg-gray-800 prose-a:text-blue-600 prose-blockquote:border-l-blue-500 prose-blockquote:bg-blue-50 prose-blockquote:text-gray-700">
+                            <ReactMarkdown
+                              remarkPlugins={[remarkMath, remarkGfm]}
+                              rehypePlugins={[rehypeKatex]}
+                            >
                               {note.content}
-                            </div>
+                            </ReactMarkdown>
                           </div>
                         </div>
                       ))}

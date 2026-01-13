@@ -1392,18 +1392,33 @@ function SummaryNotesManagementCard() {
           </div>
 
           <div>
-            <Label htmlFor="note-content">내용 *</Label>
+            <Label htmlFor="note-content">내용 (마크다운 지원) *</Label>
             <Textarea
               id="note-content"
               value={form.content}
               onChange={(e) => setForm({...form, content: e.target.value})}
-              placeholder="요약노트 내용을 입력하세요..."
-              className="min-h-[200px]"
+              placeholder="요약노트 내용을 마크다운으로 입력하세요..."
+              className="min-h-[300px] font-mono text-sm"
               required
             />
-            <p className="text-xs text-gray-500 mt-1">
-              💡 일반 텍스트로 작성하세요. 줄바꿈은 그대로 표시됩니다.
-            </p>
+            <div className="text-xs text-gray-600 mt-2 space-y-1 bg-gray-50 p-3 rounded border">
+              <p className="font-semibold text-gray-800 mb-2">📝 마크다운 가이드:</p>
+              <p>• **굵게** → <strong>굵게</strong></p>
+              <p>• *기울임* → <em>기울임</em></p>
+              <p>• # 제목1, ## 제목2, ### 제목3</p>
+              <p>• `코드` → 인라인 코드</p>
+              <p>• > 인용구 → 파란색 박스</p>
+              <p>• [링크](URL) → 클릭 가능한 링크</p>
+              <p>• ![이미지](이미지URL) → 이미지 삽입</p>
+              <p className="font-semibold text-gray-800 mt-2">🔢 수식 (LaTeX):</p>
+              <p>• 인라인: $\sigma = \sqrt&#123;x&#125;$ → σ = √x</p>
+              <p>• 블록: $$E(X) = \sum x_i \cdot P(x_i)$$</p>
+              <p className="font-semibold text-gray-800 mt-2">📊 유용한 수식 기호:</p>
+              <p>• \sum (합), \prod (곱), \int (적분)</p>
+              <p>• \frac&#123;분자&#125;&#123;분모&#125; (분수)</p>
+              <p>• \sqrt&#123;x&#125; (제곱근), x^2 (제곱)</p>
+              <p>• \bar&#123;x&#125; (평균), \mu (뮤), \sigma (시그마)</p>
+            </div>
           </div>
 
           <div className="flex gap-2">
