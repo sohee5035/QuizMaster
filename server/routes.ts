@@ -1089,7 +1089,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.setHeader('Content-Type', 'text/csv; charset=utf-8');
       res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
 
-      // CSV 헤더 (BOM 제거)
+      // UTF-8 BOM 추가 (엑셀에서 한글이 깨지지 않도록)
+      res.write('\uFEFF');
+
+      // CSV 헤더
       const header = 'question_id,type,stem,box_content,explanation,tags,difficulty,source,answer,choice1,choice2,choice3,choice4,correct_answer\n';
       res.write(header);
 
