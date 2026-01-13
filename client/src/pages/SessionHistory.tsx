@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
@@ -21,6 +22,7 @@ interface SessionHistoryProps {
 }
 
 export default function SessionHistory({ onViewResults, onHome }: SessionHistoryProps) {
+  const [loadingSessionId, setLoadingSessionId] = useState<string | null>(null);
   // Check if user is logged in
   const { data: authData } = useQuery({
     queryKey: ['/api/auth/me'],
@@ -47,11 +49,13 @@ export default function SessionHistory({ onViewResults, onHome }: SessionHistory
 
   const handleViewSession = async (sessionId: string) => {
     try {
+      setLoadingSessionId(sessionId);
       const response = await apiRequest("GET", `/api/sessions/${sessionId}`);
       const results = await response.json();
       onViewResults(results);
     } catch (error) {
       console.error("Failed to load session:", error);
+      setLoadingSessionId(null);
     }
   };
 
@@ -106,6 +110,18 @@ export default function SessionHistory({ onViewResults, onHome }: SessionHistory
 
   return (
     <div className="container mx-auto max-w-4xl p-6">
+      {/* 로딩 오버레이 */}
+      {loadingSessionId && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="shadow-lg">
+            <CardContent className="p-8 flex flex-col items-center gap-4">
+              <Spinner />
+              <p className="text-lg font-semibold text-gray-700">문제를 불러오는 중...</p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       <Card className="shadow-sm">
         <CardContent className="p-8">
           <div className="flex justify-between items-center mb-8">
@@ -154,8 +170,10 @@ export default function SessionHistory({ onViewResults, onHome }: SessionHistory
                 return (
                   <Card
                     key={session.id}
-                    className="border border-gray-200 hover:border-blue-400 transition-colors cursor-pointer"
-                    onClick={() => handleViewSession(session.id)}
+                    className={`border border-gray-200 hover:border-blue-400 transition-colors cursor-pointer ${
+                      loadingSessionId === session.id ? 'opacity-50' : ''
+                    }`}
+                    onClick={() => !loadingSessionId && handleViewSession(session.id)}
                   >
                     <CardContent className="p-6">
                       <div className="flex justify-between items-start">
