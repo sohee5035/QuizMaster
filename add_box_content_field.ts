@@ -1,5 +1,5 @@
 import { storage } from "./server/storage";
-import { db } from "./server/db";
+import { database } from "./server/db";
 import { sql } from "drizzle-orm";
 
 async function addBoxContentField() {
@@ -7,7 +7,7 @@ async function addBoxContentField() {
 
   try {
     // Add box_content column to questions table
-    await db.execute(sql`
+    await database.execute(sql`
       ALTER TABLE questions
       ADD COLUMN IF NOT EXISTS box_content TEXT
     `);
