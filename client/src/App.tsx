@@ -457,39 +457,7 @@ function AppContent() {
             <div className="absolute top-full left-0 right-0 bg-white border-b shadow-lg z-50">
               <div className="max-w-4xl mx-auto px-4 py-2">
                 <div className="flex flex-col space-y-2">
-                  <button
-                    onClick={() => {
-                      handleHome();
-                      setIsMenuOpen(false);
-                    }}
-                    className="text-left px-4 py-3 hover:bg-gray-50 rounded-lg text-blue-600 font-semibold"
-                    data-testid="nav-home"
-                  >
-                    🏠 홈
-                  </button>
-                  <button
-                    onClick={() => {
-                      handleHistory();
-                      setIsMenuOpen(false);
-                    }}
-                    className="text-left px-4 py-3 hover:bg-gray-50 rounded-lg text-green-600 font-semibold"
-                    data-testid="nav-history"
-                  >
-                    📚 학습 이력
-                  </button>
-                  <button
-                    onClick={() => {
-                      handleAdmin();
-                      setIsMenuOpen(false);
-                    }}
-                    className="text-left px-4 py-3 hover:bg-gray-50 rounded-lg text-gray-600 font-semibold"
-                    data-testid="nav-admin"
-                  >
-                    ⚙️ 관리자
-                  </button>
-
-                  <div className="border-t border-gray-200 my-2"></div>
-
+                  {/* 사용자 정보 / 로그인 버튼을 최상단에 배치 */}
                   {isLoggedIn ? (
                     <>
                       <div className="px-4 py-2 bg-blue-50 rounded-lg">
@@ -497,16 +465,7 @@ function AppContent() {
                           👤 {currentUser.name}님
                         </span>
                       </div>
-                      <button
-                        onClick={() => {
-                          handleLogout();
-                          setIsMenuOpen(false);
-                        }}
-                        className="text-left px-4 py-3 hover:bg-gray-50 rounded-lg text-red-600 font-semibold"
-                        data-testid="nav-logout"
-                      >
-                        🚪 로그아웃
-                      </button>
+                      <div className="border-t border-gray-200 my-2"></div>
                     </>
                   ) : (
                     <>
@@ -530,8 +489,59 @@ function AppContent() {
                       >
                         ✨ 회원가입
                       </button>
+                      <div className="border-t border-gray-200 my-2"></div>
                     </>
                   )}
+
+                  {/* 메인 메뉴 */}
+                  <button
+                    onClick={() => {
+                      handleHome();
+                      setIsMenuOpen(false);
+                    }}
+                    className="text-left px-4 py-3 hover:bg-gray-50 rounded-lg text-blue-600 font-semibold"
+                    data-testid="nav-home"
+                  >
+                    🏠 홈
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleHistory();
+                      setIsMenuOpen(false);
+                    }}
+                    className="text-left px-4 py-3 hover:bg-gray-50 rounded-lg text-green-600 font-semibold"
+                    data-testid="nav-history"
+                  >
+                    📚 학습 이력
+                  </button>
+
+                  {/* 로그아웃 (로그인된 경우만) */}
+                  {isLoggedIn && (
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        setIsMenuOpen(false);
+                      }}
+                      className="text-left px-4 py-3 hover:bg-gray-50 rounded-lg text-red-600 font-semibold"
+                      data-testid="nav-logout"
+                    >
+                      🚪 로그아웃
+                    </button>
+                  )}
+
+                  <div className="border-t border-gray-200 my-2"></div>
+
+                  {/* 관리자 메뉴를 최하단에 배치 */}
+                  <button
+                    onClick={() => {
+                      handleAdmin();
+                      setIsMenuOpen(false);
+                    }}
+                    className="text-left px-4 py-3 hover:bg-gray-50 rounded-lg text-gray-600 font-semibold"
+                    data-testid="nav-admin"
+                  >
+                    ⚙️ 관리자
+                  </button>
                 </div>
               </div>
             </div>
