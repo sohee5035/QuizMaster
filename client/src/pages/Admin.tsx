@@ -1407,7 +1407,7 @@ function SummaryNotesManagementCard() {
               <p>• *기울임* → <em>기울임</em></p>
               <p>• # 제목1, ## 제목2, ### 제목3</p>
               <p>• `코드` → 인라인 코드</p>
-              <p>• > 인용구 → 파란색 박스</p>
+              <p>• &gt; 인용구 → 파란색 박스</p>
               <p>• [링크](URL) → 클릭 가능한 링크</p>
               <p>• ![이미지](이미지URL) → 이미지 삽입</p>
               <p className="font-semibold text-gray-800 mt-2">🔢 수식 (LaTeX):</p>
