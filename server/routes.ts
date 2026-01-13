@@ -1,8 +1,11 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { database } from "./db";
 import { z } from "zod";
 import type { SessionResponse, AnswerResponse, ResultsResponse, QuestionWithChoices, Response } from "@shared/schema";
+import { summaryNotes } from "@shared/schema";
+import { eq } from "drizzle-orm";
 import multer from "multer";
 import csv from "csv-parser";
 import { Readable } from "stream";
@@ -1416,6 +1419,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Reject user error:", error);
       res.status(500).json({ message: "사용자 거부 실패" });
+    }
+  });
+
+  // =====================
+  // Summary Notes APIs
+  // =====================
+
+  // Get all summary notes
+  app.get("/api/summary-notes", async (req, res) => {
+    try {
+      const notes = await database.select().from(summaryNotes).orderBy(summaryNotes.subject, summaryNotes.order);
+      res.json({ notes });
+    } catch (error) {
+      console.error("Get summary notes error:", error);
+      res.status(500).json({ message: "요약노트 조회 실패" });
+    }
+  });
+
+  // Get summary notes by subject
+  app.get("/api/summary-notes/subject/:subject", async (req, res) => {
+    try {
+      const subject = parseInt(req.params.subject);
+      const notes = await database.select().from(summaryNotes).where(eq(summaryNotes.subject, subject)).orderBy(summaryNotes.order);
+      res.json({ notes });
+    } catch (error) {
+      console.error("Get summary notes by subject error:", error);
+      res.status(500).json({ message: "요약노트 조회 실패" });
+    }
+  });
+
+  // Create summary note (admin)
+  app.post("/api/admin/summary-notes", async (req, res) => {
+    try {
+      const { subject, title, content, order } = req.body;
+      const id = `note_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+      await database.insert(summaryNotes).values({
+        id,
+        subject,
+        title,
+        content,
+        order: order || 0,
+      });
+
+      res.json({ message: "요약노트가 생성되었습니다.", id });
+    } catch (error) {
+      console.error("Create summary note error:", error);
+      res.status(500).json({ message: "요약노트 생성 실패" });
+    }
+  });
+
+  // Update summary note (admin)
+  app.put("/api/admin/summary-notes/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { subject, title, content, order } = req.body;
+
+      await database.update(summaryNotes)
+        .set({
+          subject,
+          title,
+          content,
+          order,
+          updatedAt: new Date(),
+        })
+        .where(eq(summaryNotes.id, id));
+
+      res.json({ message: "요약노트가 수정되었습니다." });
+    } catch (error) {
+      console.error("Update summary note error:", error);
+      res.status(500).json({ message: "요약노트 수정 실패" });
+    }
+  });
+
+  // Delete summary note (admin)
+  app.delete("/api/admin/summary-notes/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      await database.delete(summaryNotes).where(eq(summaryNotes.id, id));
+      res.json({ message: "요약노트가 삭제되었습니다." });
+    } catch (error) {
+      console.error("Delete summary note error:", error);
+      res.status(500).json({ message: "요약노트 삭제 실패" });
     }
   });
 

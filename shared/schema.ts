@@ -68,6 +68,16 @@ export const bookmarks = pgTable("bookmarks", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const summaryNotes = pgTable("summary_notes", {
+  id: text("id").primaryKey(),
+  subject: integer("subject").notNull(), // 1, 2, 3 (과목)
+  title: text("title").notNull(), // 섹션 제목 (예: "데이터베이스 개념")
+  content: text("content").notNull(), // 마크다운 내용
+  order: integer("order").notNull().default(0), // 정렬 순서
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const insertQuestionSchema = createInsertSchema(questions);
 export const insertChoiceSchema = createInsertSchema(choices);
 export const insertSessionSchema = createInsertSchema(sessions).omit({ id: true, startedAt: true, endedAt: true });
@@ -75,6 +85,7 @@ export const insertResponseSchema = createInsertSchema(responses).omit({ id: tru
 export const insertPageViewSchema = createInsertSchema(pageViews).omit({ id: true, visitedAt: true });
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true });
 export const insertBookmarkSchema = createInsertSchema(bookmarks).omit({ id: true, createdAt: true });
+export const insertSummaryNoteSchema = createInsertSchema(summaryNotes).omit({ id: true, createdAt: true, updatedAt: true });
 
 export type Question = typeof questions.$inferSelect;
 export type Choice = typeof choices.$inferSelect;
@@ -83,6 +94,7 @@ export type Response = typeof responses.$inferSelect;
 export type PageView = typeof pageViews.$inferSelect;
 export type User = typeof users.$inferSelect;
 export type Bookmark = typeof bookmarks.$inferSelect;
+export type SummaryNote = typeof summaryNotes.$inferSelect;
 export type InsertQuestion = z.infer<typeof insertQuestionSchema>;
 export type InsertChoice = z.infer<typeof insertChoiceSchema>;
 export type InsertSession = z.infer<typeof insertSessionSchema>;
@@ -90,6 +102,7 @@ export type InsertResponse = z.infer<typeof insertResponseSchema>;
 export type InsertPageView = z.infer<typeof insertPageViewSchema>;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertBookmark = z.infer<typeof insertBookmarkSchema>;
+export type InsertSummaryNote = z.infer<typeof insertSummaryNoteSchema>;
 
 // API response types
 export type QuestionWithChoices = Question & {

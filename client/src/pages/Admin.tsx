@@ -1194,6 +1194,299 @@ function UserManagementCard() {
   );
 }
 
+// 요약노트 관리 컴포넌트
+function SummaryNotesManagementCard() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [editingNote, setEditingNote] = useState<any>(null);
+  const [form, setForm] = useState({
+    subject: "",
+    title: "",
+    content: "",
+    order: "0",
+  });
+
+  // Fetch all summary notes
+  const { data: notesData, isLoading } = useQuery({
+    queryKey: ['/api/summary-notes'],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/summary-notes");
+      return response.json();
+    }
+  });
+
+  // Create note mutation
+  const createNoteMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await apiRequest("POST", "/api/admin/summary-notes", data);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "성공",
+        description: "요약노트가 생성되었습니다.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/summary-notes'] });
+      setForm({ subject: "", title: "", content: "", order: "0" });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "오류",
+        description: error.message || "요약노트 생성에 실패했습니다.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update note mutation
+  const updateNoteMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      const response = await apiRequest("PUT", `/api/admin/summary-notes/${id}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "성공",
+        description: "요약노트가 수정되었습니다.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/summary-notes'] });
+      setEditingNote(null);
+      setForm({ subject: "", title: "", content: "", order: "0" });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "오류",
+        description: error.message || "요약노트 수정에 실패했습니다.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete note mutation
+  const deleteNoteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiRequest("DELETE", `/api/admin/summary-notes/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "성공",
+        description: "요약노트가 삭제되었습니다.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/summary-notes'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "오류",
+        description: error.message || "요약노트 삭제에 실패했습니다.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!form.subject || !form.title || !form.content) {
+      toast({
+        title: "오류",
+        description: "모든 필수 항목을 입력해주세요.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const data = {
+      subject: parseInt(form.subject),
+      title: form.title,
+      content: form.content,
+      order: parseInt(form.order),
+    };
+
+    if (editingNote) {
+      updateNoteMutation.mutate({ id: editingNote.id, data });
+    } else {
+      createNoteMutation.mutate(data);
+    }
+  };
+
+  const handleEdit = (note: any) => {
+    setEditingNote(note);
+    setForm({
+      subject: String(note.subject),
+      title: note.title,
+      content: note.content,
+      order: String(note.order),
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingNote(null);
+    setForm({ subject: "", title: "", content: "", order: "0" });
+  };
+
+  const handleDelete = (id: string) => {
+    if (confirm("정말 이 요약노트를 삭제하시겠습니까?")) {
+      deleteNoteMutation.mutate(id);
+    }
+  };
+
+  // Group notes by subject
+  const notesBySubject = notesData?.notes?.reduce((acc: any, note: any) => {
+    if (!acc[note.subject]) {
+      acc[note.subject] = [];
+    }
+    acc[note.subject].push(note);
+    return acc;
+  }, {}) || {};
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>📝 요약노트 관리</CardTitle>
+        <CardDescription>과목별 핵심 요약노트를 작성하고 관리합니다</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {/* Form Section */}
+        <form onSubmit={handleSubmit} className="space-y-4 mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <h3 className="font-semibold text-blue-800 mb-2">
+            {editingNote ? "📝 요약노트 수정" : "➕ 새 요약노트 추가"}
+          </h3>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="note-subject">과목 *</Label>
+              <Select value={form.subject} onValueChange={(value) => setForm({...form, subject: value})}>
+                <SelectTrigger>
+                  <SelectValue placeholder="과목 선택" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">1과목: 데이터 이해</SelectItem>
+                  <SelectItem value="2">2과목: 데이터 분석 기획</SelectItem>
+                  <SelectItem value="3">3과목: 데이터 분석</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="note-order">정렬 순서</Label>
+              <Input
+                id="note-order"
+                type="number"
+                value={form.order}
+                onChange={(e) => setForm({...form, order: e.target.value})}
+                placeholder="0"
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="note-title">제목 *</Label>
+            <Input
+              id="note-title"
+              value={form.title}
+              onChange={(e) => setForm({...form, title: e.target.value})}
+              placeholder="예: 데이터베이스 개념"
+              required
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="note-content">내용 *</Label>
+            <Textarea
+              id="note-content"
+              value={form.content}
+              onChange={(e) => setForm({...form, content: e.target.value})}
+              placeholder="요약노트 내용을 입력하세요..."
+              className="min-h-[200px]"
+              required
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              💡 일반 텍스트로 작성하세요. 줄바꿈은 그대로 표시됩니다.
+            </p>
+          </div>
+
+          <div className="flex gap-2">
+            <Button type="submit" className="flex-1">
+              {editingNote ? "수정하기" : "추가하기"}
+            </Button>
+            {editingNote && (
+              <Button type="button" variant="outline" onClick={handleCancelEdit}>
+                취소
+              </Button>
+            )}
+          </div>
+        </form>
+
+        {/* Notes List */}
+        <div className="space-y-4">
+          <h3 className="font-semibold text-gray-900">등록된 요약노트</h3>
+
+          {isLoading ? (
+            <div className="text-center py-8 text-gray-500">
+              로딩 중...
+            </div>
+          ) : !notesData?.notes || notesData.notes.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              아직 작성된 요약노트가 없습니다.
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {[1, 2, 3].map(subject => {
+                const notes = notesBySubject[subject] || [];
+                if (notes.length === 0) return null;
+
+                return (
+                  <div key={subject} className="border rounded-lg p-4">
+                    <h4 className="font-semibold text-lg mb-3">
+                      {subject === 1 ? "📘 1과목: 데이터 이해" :
+                       subject === 2 ? "📗 2과목: 데이터 분석 기획" :
+                       "📙 3과목: 데이터 분석"}
+                    </h4>
+                    <div className="space-y-2">
+                      {notes
+                        .sort((a: any, b: any) => a.order - b.order)
+                        .map((note: any) => (
+                          <div key={note.id} className="flex items-start justify-between p-3 bg-gray-50 rounded border">
+                            <div className="flex-1">
+                              <div className="font-medium text-gray-900">{note.title}</div>
+                              <div className="text-sm text-gray-500 mt-1 line-clamp-2">
+                                {note.content.substring(0, 100)}...
+                              </div>
+                              <div className="text-xs text-gray-400 mt-1">
+                                순서: {note.order}
+                              </div>
+                            </div>
+                            <div className="flex gap-2 ml-4">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleEdit(note)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => handleDelete(note.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function Admin() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -1512,13 +1805,14 @@ export default function Admin() {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="stats" className="w-full">
-              <TabsList className="grid w-full grid-cols-6">
+              <TabsList className="grid w-full grid-cols-7">
                 <TabsTrigger value="stats">조회수 통계</TabsTrigger>
                 <TabsTrigger value="users">회원 관리</TabsTrigger>
                 <TabsTrigger value="manage">문제 관리</TabsTrigger>
                 <TabsTrigger value="ox">OX 문제</TabsTrigger>
                 <TabsTrigger value="mcq">사지선다</TabsTrigger>
                 <TabsTrigger value="csv">CSV 업로드</TabsTrigger>
+                <TabsTrigger value="notes">요약노트</TabsTrigger>
               </TabsList>
 
               <TabsContent value="stats" className="space-y-4">
@@ -1963,6 +2257,10 @@ export default function Admin() {
                     </Button>
                   </div>
                 </div>
+              </TabsContent>
+
+              <TabsContent value="notes" className="space-y-4">
+                <SummaryNotesManagementCard />
               </TabsContent>
 
             </Tabs>

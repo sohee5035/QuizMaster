@@ -17,9 +17,10 @@ import TimerSetup from "./pages/TimerSetup";
 import SessionHistory from "./pages/SessionHistory";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import SummaryNotes from "./pages/SummaryNotes";
 import type { SessionResponse, AnswerResponse, ResultsResponse, TimerQuestionData, TimerResultsData } from "@shared/schema";
 
-type AppState = "home" | "question" | "results" | "admin" | "timer" | "timer-results" | "timer-setup" | "history" | "login" | "signup";
+type AppState = "home" | "question" | "results" | "admin" | "timer" | "timer-results" | "timer-setup" | "history" | "login" | "signup" | "summary";
 
 function AppContent() {
   const [appState, setAppState] = useState<AppState>("home");
@@ -372,6 +373,10 @@ function AppContent() {
     setAppState("history");
   };
 
+  const handleSummary = () => {
+    setAppState("summary");
+  };
+
   const handleViewHistoryResults = (historyResults: ResultsResponse) => {
     setResults(historyResults);
     setAppState("results");
@@ -514,6 +519,16 @@ function AppContent() {
                   >
                     📚 학습 이력
                   </button>
+                  <button
+                    onClick={() => {
+                      handleSummary();
+                      setIsMenuOpen(false);
+                    }}
+                    className="text-left px-4 py-3 hover:bg-gray-50 rounded-lg text-purple-600 font-semibold"
+                    data-testid="nav-summary"
+                  >
+                    📝 핵심 요약
+                  </button>
 
                   {/* 로그아웃 (로그인된 경우만) */}
                   {isLoggedIn && (
@@ -620,6 +635,12 @@ function AppContent() {
       {appState === "history" && (
         <SessionHistory
           onViewResults={handleViewHistoryResults}
+          onHome={handleHome}
+        />
+      )}
+
+      {appState === "summary" && (
+        <SummaryNotes
           onHome={handleHome}
         />
       )}
