@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { ResultsResponse } from "@shared/schema";
@@ -10,6 +11,24 @@ interface ResultsProps {
 }
 
 export default function Results({ results, onRestart, onHome }: ResultsProps) {
+  const [showOnlyIncorrect, setShowOnlyIncorrect] = useState(true);
+
+  // Get correct answer for a question
+  const getCorrectAnswer = (result: any) => {
+    const question = result.question;
+    if (question.type?.toUpperCase() === "MCQ") {
+      const correctChoice = question.choices?.find((c: any) => c.isCorrect);
+      return correctChoice?.content || "정답 없음";
+    } else {
+      return question.answer ? "O" : "X";
+    }
+  };
+
+  // Filter questions based on toggle
+  const filteredQuestions = showOnlyIncorrect
+    ? results.questions.filter(q => !q.isCorrect)
+    : results.questions;
+
   // Calculate subject-based statistics
   const subjectStats = results.questions.reduce((acc, result) => {
     const subject = result.question.subject;
@@ -87,30 +106,71 @@ export default function Results({ results, onRestart, onHome }: ResultsProps) {
 
           {/* Question Review */}
           <div className="space-y-4 mb-8">
-            <h3 className="font-semibold text-gray-900">문항별 해설</h3>
-            
-            {results.questions.map((result, index) => (
-              <div key={index} className="border border-gray-200 rounded-lg p-4" data-testid={`review-question-${index}`}>
-                <div className="flex items-start justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-600">문제 {index + 1}</span>
-                  <span className={`text-sm font-medium ${result.isCorrect ? 'text-green-600' : 'text-red-600'}`}>
-                    {result.isCorrect ? '정답' : '오답'}
-                  </span>
-                </div>
-                <p className="text-gray-900 mb-3 whitespace-pre-wrap" data-testid={`text-question-${index}`}>
-                  {result.question.stem}
-                </p>
-                <div className="bg-gray-50 rounded p-3">
-                  <div className="text-sm font-medium text-gray-600 mb-1">해설</div>
-                  <div
-                    className="text-sm text-gray-700 whitespace-pre-wrap"
-                    data-testid={`text-explanation-${index}`}
-                  >
-                    {result.question.explanation}
-                  </div>
-                </div>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-gray-900">문항별 해설</h3>
+              <Button
+                onClick={() => setShowOnlyIncorrect(!showOnlyIncorrect)}
+                variant="outline"
+                size="sm"
+                className="text-sm"
+              >
+                {showOnlyIncorrect ? `전체보기 (${results.questions.length}문제)` : `틀린 문제만 (${results.incorrectAnswers}문제)`}
+              </Button>
+            </div>
+
+            {filteredQuestions.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <p className="text-lg font-semibold mb-2">🎉 모든 문제를 맞추셨습니다!</p>
+                <p className="text-sm">완벽해요! 다음 학습도 화이팅!</p>
               </div>
-            ))}
+            ) : (
+              filteredQuestions.map((result, index) => {
+                const originalIndex = results.questions.indexOf(result);
+                return (
+                  <div key={originalIndex} className="border border-gray-200 rounded-lg p-4" data-testid={`review-question-${originalIndex}`}>
+                    <div className="flex items-start justify-between mb-2">
+                      <span className="text-sm font-medium text-gray-600">문제 {originalIndex + 1}</span>
+                      <span className={`text-sm font-medium ${result.isCorrect ? 'text-green-600' : 'text-red-600'}`}>
+                        {result.isCorrect ? '정답' : '오답'}
+                      </span>
+                    </div>
+                    <p className="text-gray-900 mb-3 whitespace-pre-wrap" data-testid={`text-question-${originalIndex}`}>
+                      {result.question.stem}
+                    </p>
+
+                    {/* Box Content */}
+                    {result.question.boxContent && (
+                      <div className="mb-3">
+                        <div className="border border-gray-300 bg-gray-50 rounded-lg p-3">
+                          <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
+                            {result.question.boxContent}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Correct Answer */}
+                    <div className="bg-green-50 border border-green-200 rounded p-3 mb-3">
+                      <div className="text-sm font-medium text-green-800 mb-1">정답</div>
+                      <div className="text-sm text-green-900 font-semibold">
+                        {getCorrectAnswer(result)}
+                      </div>
+                    </div>
+
+                    {/* Explanation */}
+                    <div className="bg-gray-50 rounded p-3">
+                      <div className="text-sm font-medium text-gray-600 mb-1">해설</div>
+                      <div
+                        className="text-sm text-gray-700 whitespace-pre-wrap"
+                        data-testid={`text-explanation-${originalIndex}`}
+                      >
+                        {result.question.explanation}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
 
           {/* Action Buttons */}

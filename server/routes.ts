@@ -986,7 +986,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/admin/questions/:id", async (req, res) => {
     try {
       const questionId = req.params.id;
-      const { type, stem, explanation, choices: newChoices } = req.body;
+      const { type, stem, boxContent, explanation, subject, round, difficulty, choices: newChoices } = req.body;
 
       // 문제가 존재하는지 확인
       const existingQuestion = await storage.getQuestion(questionId);
@@ -995,7 +995,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // 문제 업데이트
-      const updateData: any = { stem, explanation };
+      const updateData: any = {
+        stem,
+        boxContent,
+        explanation,
+        subject,
+        round,
+        difficulty
+      };
       if (type === "OX") {
         updateData.answer = req.body.answer;
       }
