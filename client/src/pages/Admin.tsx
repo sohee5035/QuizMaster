@@ -1308,24 +1308,35 @@ export default function Admin() {
       if (!response.ok) {
         throw new Error("다운로드에 실패했습니다.");
       }
-      
+
+      // 서버에서 보낸 파일명 추출
+      const contentDisposition = response.headers.get('Content-Disposition');
+      let filename = 'adsp_questions.csv'; // 기본값
+
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="?(.+)"?/i);
+        if (filenameMatch && filenameMatch[1]) {
+          filename = filenameMatch[1].replace(/"/g, '');
+        }
+      }
+
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'kb_exam_questions.csv';
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-      
+
       toast({
         title: "성공",
         description: "문제 데이터가 성공적으로 다운로드되었습니다.",
       });
     } catch (error) {
       toast({
-        title: "오류", 
+        title: "오류",
         description: "다운로드에 실패했습니다.",
         variant: "destructive",
       });
