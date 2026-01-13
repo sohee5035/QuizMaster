@@ -60,7 +60,7 @@ async function setupSampleData() {
         difficulty: null,
         source: null,
         answer: questionType === 'OX' ? (questionData.correctAnswer === 'O') : null,
-        author: 'admin',
+        author: 'default',
         category: null,
         subject: parseInt(questionData.subject) || null,
         round: questionData.round ? parseInt(questionData.round) : null,
