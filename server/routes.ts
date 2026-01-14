@@ -11,6 +11,14 @@ import csv from "csv-parser";
 import { Readable } from "stream";
 import bcrypt from "bcrypt";
 import session from "express-session";
+import { v2 as cloudinary } from "cloudinary";
+
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 // Fisher-Yates shuffle algorithm
 function shuffle<T>(array: T[]): T[] {
@@ -1507,6 +1515,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Delete summary note error:", error);
       res.status(500).json({ message: "요약노트 삭제 실패" });
+    }
+  });
+
+  // Image upload endpoint (admin)
+  app.post("/api/admin/upload-image", upload.single("image"), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "이미지 파일이 필요합니다." });
+      }
+
+      // Check if Cloudinary is configured
+      if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+        return res.status(500).json({
+          message: "Cloudinary가 설정되지 않았습니다. 환경 변수를 확인하세요.",
+          configured: false
+        });
+      }
+
+      // Convert buffer to base64
+      const b64 = Buffer.from(req.file.buffer).toString("base64");
+      const dataURI = `data:${req.file.mimetype};base64,${b64}`;
+
+      // Upload to Cloudinary
+      const result = await cloudinary.uploader.upload(dataURI, {
+        folder: "adsp-quiz", // 폴더 이름
+        resource_type: "auto",
+      });
+
+      res.json({
+        url: result.secure_url,
+        publicId: result.public_id,
+        message: "이미지가 업로드되었습니다."
+      });
+    } catch (error) {
+      console.error("Image upload error:", error);
+      res.status(500).json({ message: "이미지 업로드 실패" });
     }
   });
 

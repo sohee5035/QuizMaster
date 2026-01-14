@@ -1547,7 +1547,56 @@ export default function Admin() {
     author: "default"
   });
 
+  // 이미지 업로드 상태
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
+  // 이미지 업로드 핸들러
+  const handleImageUpload = async (file: File, fieldName: string, formType: 'ox' | 'mcq') => {
+    setIsUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await fetch('/api/admin/upload-image', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || '이미지 업로드 실패');
+      }
+
+      const data = await response.json();
+      const imageMarkdown = `![이미지](${data.url})`;
+
+      // 해당 필드에 이미지 마크다운 추가
+      if (formType === 'ox') {
+        setOxForm(prev => ({
+          ...prev,
+          [fieldName]: prev[fieldName as keyof typeof prev] + '\n\n' + imageMarkdown
+        }));
+      } else {
+        setMcqForm(prev => ({
+          ...prev,
+          [fieldName]: prev[fieldName as keyof typeof prev] + '\n\n' + imageMarkdown
+        }));
+      }
+
+      toast({
+        title: "성공",
+        description: "이미지가 업로드되었습니다.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "오류",
+        description: error.message || "이미지 업로드에 실패했습니다.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
 
   const createQuestionMutation = useMutation({
     mutationFn: (data: any) => fetch("/api/admin/questions", {
@@ -1874,7 +1923,27 @@ export default function Admin() {
                   </div>
 
                   <div>
-                    <Label htmlFor="ox-stem">문제 내용 (마크다운 지원)</Label>
+                    <div className="flex items-center justify-between mb-2">
+                      <Label htmlFor="ox-stem">문제 내용 (마크다운 지원)</Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const input = document.createElement('input');
+                          input.type = 'file';
+                          input.accept = 'image/*';
+                          input.onchange = (e) => {
+                            const file = (e.target as HTMLInputElement).files?.[0];
+                            if (file) handleImageUpload(file, 'stem', 'ox');
+                          };
+                          input.click();
+                        }}
+                        disabled={isUploadingImage}
+                      >
+                        📷 이미지 추가
+                      </Button>
+                    </div>
                     <Textarea
                       id="ox-stem"
                       value={oxForm.stem}
@@ -1889,7 +1958,27 @@ export default function Admin() {
                   </div>
 
                   <div>
-                    <Label htmlFor="ox-box-content">박스 내용 (선택사항, 마크다운 지원)</Label>
+                    <div className="flex items-center justify-between mb-2">
+                      <Label htmlFor="ox-box-content">박스 내용 (선택사항, 마크다운 지원)</Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const input = document.createElement('input');
+                          input.type = 'file';
+                          input.accept = 'image/*';
+                          input.onchange = (e) => {
+                            const file = (e.target as HTMLInputElement).files?.[0];
+                            if (file) handleImageUpload(file, 'boxContent', 'ox');
+                          };
+                          input.click();
+                        }}
+                        disabled={isUploadingImage}
+                      >
+                        📷 이미지 추가
+                      </Button>
+                    </div>
                     <Textarea
                       id="ox-box-content"
                       value={oxForm.boxContent}
@@ -1905,7 +1994,27 @@ export default function Admin() {
                   </div>
 
                   <div>
-                    <Label htmlFor="ox-explanation">해설 (마크다운 지원)</Label>
+                    <div className="flex items-center justify-between mb-2">
+                      <Label htmlFor="ox-explanation">해설 (마크다운 지원)</Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const input = document.createElement('input');
+                          input.type = 'file';
+                          input.accept = 'image/*';
+                          input.onchange = (e) => {
+                            const file = (e.target as HTMLInputElement).files?.[0];
+                            if (file) handleImageUpload(file, 'explanation', 'ox');
+                          };
+                          input.click();
+                        }}
+                        disabled={isUploadingImage}
+                      >
+                        📷 이미지 추가
+                      </Button>
+                    </div>
                     <Textarea
                       id="ox-explanation"
                       value={oxForm.explanation}
@@ -2035,7 +2144,27 @@ export default function Admin() {
                   </div>
 
                   <div>
-                    <Label htmlFor="mcq-stem">문제 내용 (마크다운 지원)</Label>
+                    <div className="flex items-center justify-between mb-2">
+                      <Label htmlFor="mcq-stem">문제 내용 (마크다운 지원)</Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const input = document.createElement('input');
+                          input.type = 'file';
+                          input.accept = 'image/*';
+                          input.onchange = (e) => {
+                            const file = (e.target as HTMLInputElement).files?.[0];
+                            if (file) handleImageUpload(file, 'stem', 'mcq');
+                          };
+                          input.click();
+                        }}
+                        disabled={isUploadingImage}
+                      >
+                        📷 이미지 추가
+                      </Button>
+                    </div>
                     <Textarea
                       id="mcq-stem"
                       value={mcqForm.stem}
@@ -2050,7 +2179,27 @@ export default function Admin() {
                   </div>
 
                   <div>
-                    <Label htmlFor="mcq-box-content">박스 내용 (선택사항, 마크다운 지원)</Label>
+                    <div className="flex items-center justify-between mb-2">
+                      <Label htmlFor="mcq-box-content">박스 내용 (선택사항, 마크다운 지원)</Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const input = document.createElement('input');
+                          input.type = 'file';
+                          input.accept = 'image/*';
+                          input.onchange = (e) => {
+                            const file = (e.target as HTMLInputElement).files?.[0];
+                            if (file) handleImageUpload(file, 'boxContent', 'mcq');
+                          };
+                          input.click();
+                        }}
+                        disabled={isUploadingImage}
+                      >
+                        📷 이미지 추가
+                      </Button>
+                    </div>
                     <Textarea
                       id="mcq-box-content"
                       value={mcqForm.boxContent}
@@ -2113,7 +2262,27 @@ export default function Admin() {
                   </div>
 
                   <div>
-                    <Label htmlFor="mcq-explanation">해설 (마크다운 지원)</Label>
+                    <div className="flex items-center justify-between mb-2">
+                      <Label htmlFor="mcq-explanation">해설 (마크다운 지원)</Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const input = document.createElement('input');
+                          input.type = 'file';
+                          input.accept = 'image/*';
+                          input.onchange = (e) => {
+                            const file = (e.target as HTMLInputElement).files?.[0];
+                            if (file) handleImageUpload(file, 'explanation', 'mcq');
+                          };
+                          input.click();
+                        }}
+                        disabled={isUploadingImage}
+                      >
+                        📷 이미지 추가
+                      </Button>
+                    </div>
                     <Textarea
                       id="mcq-explanation"
                       value={mcqForm.explanation}
